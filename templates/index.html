@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-5 mb-4 bg-light rounded-3 text-center">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold">Bienvenido a VZTech</h1>
+        <p class="fs-4">Encuentra los mejores componentes para armar la PC de tus sueños.</p>
+    </div>
+</div>
+<h2 class="text-center mb-4">Nuestras Categorías</h2>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for categoria in categorias %}
+    <div class="col">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ categoria.nombre }}</h5>
+                <a href="{{ url_for('listar_productos', categoria=categoria.nombre) }}" class="btn btn-primary">Ver Productos</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

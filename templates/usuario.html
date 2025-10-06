@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header fs-4">
+        Perfil de Usuario
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">{{ usuario.nombre }}</h5>
+        <p class="card-text"><strong>Correo:</strong> {{ usuario.correo }}</p>
+        <p class="card-text"><strong>Dirección:</strong> {{ usuario.direccion }}</p>
+        <a href="{{ url_for('listar_usuarios') }}" class="btn btn-primary">Volver a la lista</a>
+    </div>
+</div>
+{% endblock %}

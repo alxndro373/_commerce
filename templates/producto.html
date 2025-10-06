@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <img src="https://via.placeholder.com/500x400.png?text={{ producto.nombre|urlencode }}" class="img-fluid rounded" alt="{{ producto.nombre }}">
+    </div>
+    <div class="col-md-6">
+        <h2>{{ producto.nombre }}</h2>
+        <p class="lead">{{ producto.descripcion }}</p>
+        <h3 class="my-3">${{ "%.2f"|format(producto.precio) }}</h3>
+        <form action="{{ url_for('agregar_al_carrito') }}" method="POST">
+            <input type="hidden" name="producto_id" value="{{ producto.id }}">
+            <div class="input-group mb-3" style="max-width: 150px;">
+                <input type="number" name="cantidad" class="form-control" value="1" min="1">
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">Agregar al Carrito</button>
+        </form>
+    </div>
+</div>
+<hr class="my-5">
+<div class="row">
+    <div class="col-12">
+        <h3>Reseñas del Producto</h3>
+        {% if reseñas %}
+            {% for reseña in reseñas %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Calificación: {{ "⭐" * reseña.calificacion }}</h5>
+                    <p class="card-text">{{ reseña.comentario }}</p>
+                    <footer class="blockquote-footer">Escrito por <cite title="Source Title">{{ reseña.autor }}</cite></footer>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>Este producto aún no tiene reseñas.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

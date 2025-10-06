@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">Usuarios Registrados</h2>
+<div class="list-group">
+    {% for usuario in usuarios %}
+    <a href="{{ url_for('perfil_usuario', usuario_id=usuario.id) }}" class="list-group-item list-group-item-action">
+        <h5 class="mb-1">{{ usuario.nombre }}</h5>
+        <p class="mb-1 text-muted">{{ usuario.correo }}</p>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}
