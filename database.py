@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 
 # --- Configuración de la Conexión a MongoDB ---
 client = MongoClient('mongodb://localhost:27017/')
-db = client['e_commerce_pc']
+db = client['ecommerce']
 
 # --- IMPORTANTE: SCRIPT ÚNICO PARA ACTUALIZAR USUARIOS ---
 def inicializar_usuarios_con_roles_y_passwords():
@@ -125,9 +125,9 @@ def obtener_productos():
     productos_cursor = db.productos.find()
     return [_mapear_id(prod) for prod in productos_cursor]
 
-def obtener_producto_por_id(producto_id):
+def obtener_producto_por_id(documento):
     try:
-        producto = db.productos.find_one({'_id': ObjectId(producto_id)})
+        producto = db.productos.find_one({'_id': ObjectId(documento)})
         return _mapear_id(producto)
     except Exception:
         return None
