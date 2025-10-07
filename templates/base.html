@@ -7,32 +7,30 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('index') }}">PC Shop</a>
-            <div class="collapse navbar-collapse">
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('listar_productos') }}">Productos</a></li>
-                    
-                    {% if session.rol == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Dashboard Admin</a>
+                        <a class="nav-link" href="{{ url_for('listar_productos') }}">Productos</a>
                     </li>
-                    {% endif %}
                 </ul>
-                <ul class="navbar-nav ms-auto">
-                    {% if session.user_id %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                Hola, {{ session.user_nombre }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ url_for('perfil_usuario', usuario_id=session.user_id) }}">Mi Perfil</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
-                            </ul>
+                <ul class="navbar-nav">
+                    <!-- LÓGICA CONDICIONAL PARA LOGIN/LOGOUT -->
+                    {% if session['user_id'] %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('perfil_usuario', usuario_id=session['user_id']) }}">Hola, {{ session['user_nombre'] }}</a>
                         </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_carrito') }}">Carrito</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('ver_carrito') }}">Carrito</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Cerrar Sesión</a>
+                        </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('login') }}">Iniciar Sesión</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('registro') }}">Registrarse</a>
                         </li>
                     {% endif %}
                 </ul>

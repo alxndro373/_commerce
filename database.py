@@ -70,6 +70,17 @@ def obtener_usuario_por_correo(correo):
     usuario = db.usuarios.find_one({'correo': correo})
     return _mapear_id(usuario)
 
+def crear_usuario(nombre, correo, password):
+    """Crea un nuevo usuario con contraseña hasheada y rol de cliente."""
+    usuario = {
+        "nombre": nombre,
+        "correo": correo,
+        "password": generate_password_hash(password),
+        "rol": "cliente"  # Todos los nuevos usuarios son clientes por defecto
+    }
+    db.usuarios.insert_one(usuario)
+    return usuario
+
 # --- Las demás funciones permanecen igual ---
 def obtener_categorias():
     categorias_cursor = db.categorias.find()

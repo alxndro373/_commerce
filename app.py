@@ -1,7 +1,7 @@
 # ecommerce-flask/app.py
 
 from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
-from database import obtener_categorias, obtener_productos, obtener_producto_por_id, obtener_usuario_por_id, obtener_usuarios, obtener_usuario_por_correo, obtener_productos_por_categoria
+from database import obtener_categorias, obtener_productos, obtener_producto_por_id, obtener_usuario_por_id, obtener_usuarios, obtener_usuario_por_correo, obtener_productos_por_categoria, crear_usuario
 from bson import ObjectId
 from werkzeug.security import check_password_hash
 from functools import wraps
@@ -49,6 +49,25 @@ def login():
             flash('Correo o contraseña incorrectos.', 'danger')
             
     return render_template('login.html')
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        correo = request.form['correo']
+        password = request.form['password']
+
+        # Verificar si el usuario ya existe
+        if obtener_usuario_por_correo(correo):
+            flash('El correo electrónico ya está registrado.', 'danger')
+            return redirect(url_for('registro'))
+
+        # Crear el nuevo usuario
+        crear_usuario(nombre, correo, password)
+        flash('¡Registro exitoso! Ahora puedes iniciar sesión.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('registro.html')
 
 @app.route('/logout')
 def logout():
