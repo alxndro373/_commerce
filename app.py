@@ -1,7 +1,7 @@
 # ecommerce-flask/app.py
 
 from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
-from database import obtener_categorias, obtener_productos, obtener_producto_por_id, obtener_usuario_por_id, obtener_usuarios, obtener_usuario_por_correo, obtener_productos_por_categoria, crear_usuario
+from database import *
 from bson import ObjectId
 from werkzeug.security import check_password_hash
 from functools import wraps
@@ -131,20 +131,34 @@ def perfil_usuario(usuario_id):
         abort(404)
     return render_template('usuario.html', usuario=usuario)
 
-@app.route('/carrito')
-@login_required # <-- RUTA PROTEGIDA
+@app.route('/carrito/')
+@login_required 
 def ver_carrito():
-    # Aquí deberías leer de la sesión para mostrar los productos
     carrito_ids = session.get('carrito', [])
+
+    # Contar cuántas veces aparece cada producto
+    from collections import Counter
+    contador = Counter(carrito_ids)
+
     productos_en_carrito = []
     total = 0
-    for item_id in carrito_ids:
+
+    for item_id, cantidad in contador.items():
         producto = obtener_producto_por_id(item_id)
         if producto:
+            producto['cantidad'] = cantidad
+            producto['subtotal'] = producto.get('precio', 0) * cantidad
             productos_en_carrito.append(producto)
-            total += producto.get('precio', 0)
-    
+            total += producto['subtotal']
+
     return render_template('carrito.html', items=productos_en_carrito, total=total)
+
+@app.route('/vaciar_carrito')
+@login_required 
+def vaciar_carrito():
+    session.pop('carrito', None)
+    flash('Carrito vaciado.', 'info')
+    return redirect(url_for('ver_carrito'))
 
 @app.route('/agregar_al_carrito/<string:producto_id>', methods=['POST'])
 @login_required
