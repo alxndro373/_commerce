@@ -134,58 +134,67 @@ def perfil_usuario(usuario_id):
 @app.route('/carrito/')
 @login_required 
 def ver_carrito():
-    carrito_ids = session.get('carrito', [])
-
-    # Contar cuántas veces aparece cada producto
-    from collections import Counter
-    contador = Counter(carrito_ids)
-
-    productos_en_carrito = []
-    total = 0
-
-    for item_id, cantidad in contador.items():
-        producto = obtener_producto_por_id(item_id)
-        if producto:
-            producto['cantidad'] = cantidad
-            producto['subtotal'] = producto.get('precio', 0) * cantidad
-            productos_en_carrito.append(producto)
-            total += producto['subtotal']
-
-    return render_template('carrito.html', items=productos_en_carrito, total=total)
+    # Obtener el usuario para conseguir su ID numérico
+    usuario = obtener_usuario_por_id(session['user_id'])
+    if not usuario or 'usuario_id' not in usuario:
+        flash('No se pudo encontrar la información del usuario.', 'danger')
+        return render_template('carrito.html', items=[], total=0)
+    
+    usuario_id_numerico = usuario['usuario_id']
+    
+    # Obtener el carrito desde la base de datos
+    carrito_data = obtener_carrito_por_usuario(usuario_id_numerico)
+    
+    return render_template('carrito.html', items=carrito_data['items'], total=carrito_data['total'])
 
 @app.route('/vaciar_carrito')
 @login_required 
 def vaciar_carrito():
-    session.pop('carrito', None)
-    flash('Carrito vaciado.', 'info')
+    usuario = obtener_usuario_por_id(session['user_id'])
+    if usuario and 'usuario_id' in usuario:
+        vaciar_carrito_db(usuario['usuario_id'])
+        flash('Carrito vaciado.', 'info')
     return redirect(url_for('ver_carrito'))
 
 @app.route('/agregar_al_carrito/<string:producto_id>', methods=['POST'])
 @login_required
 def agregar_al_carrito(producto_id):
-    # Inicializa el carrito en la sesión si no existe
-    if 'carrito' not in session:
-        session['carrito'] = []
+    # Obtener la cantidad del formulario. Si no existe, usar 1 por defecto.
+    try:
+        cantidad = int(request.form.get('cantidad', 1))
+    except (ValueError, TypeError):
+        cantidad = 1
     
-    # Añade el ID del producto al carrito
-    session['carrito'].append(producto_id)
-    session.modified = True # Importante para que la sesión se guarde
-    
-    flash('¡Producto añadido al carrito!', 'success')
-    # Redirige al usuario a la página donde estaba
+    usuario = obtener_usuario_por_id(session['user_id']) # Obtener el usuario para su ID numérico
+
+    producto = obtener_producto_por_id(producto_id) # Obtener el producto para su ID numérico
+
+    if usuario and producto and 'usuario_id' in usuario and 'producto_id' in producto:
+        usuario_id_numerico = usuario['usuario_id']
+        producto_id_numerico = producto['producto_id']
+        
+        # Bucle para agregar el producto la cantidad de veces especificada
+        for _ in range(cantidad):
+            agregar_producto_al_carrito_db(usuario_id_numerico, producto_id_numerico)
+        
+        flash(f'¡Se añadieron {cantidad} producto(s) al carrito!', 'success')
+    else:
+        flash('Error al añadir el producto.', 'danger')
+
     return redirect(request.referrer or url_for('listar_productos'))
 
 
-# --- RUTA DE EJEMPLO PARA ADMINISTRADOR ---
+# RUTA DE EJEMPLO PARA ADMINISTRADOR
 @app.route('/admin/dashboard')
 @login_required
-@admin_required # <-- RUTA SÚPER PROTEGIDA
+@admin_required # RUTA PROTEGIDA POR ROL DE ADMIN
 def admin_dashboard():
-    # Aquí iría la lógica para que el admin gestione productos, usuarios, etc.
+    # Lógica para que el admin gestione productos, usuarios, y todo lo demas.
+
     usuarios = obtener_usuarios()
     return render_template('admin_dashboard.html', usuarios=usuarios)
 
 
-# ... (El resto de las rutas sin cambios)
+# (El resto de las rutas sin cambios)
 if __name__ == '__main__':
     app.run(debug=True)

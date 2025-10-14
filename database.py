@@ -6,70 +6,30 @@ from werkzeug.security import generate_password_hash
 
 # --- Configuración de la Conexión a MongoDB ---
 client = MongoClient('mongodb://localhost:27017/')
-db = client['ecommerce']
+db = client['e_commerce_pc']
 
-# --- IMPORTANTE: SCRIPT ÚNICO PARA ACTUALIZAR USUARIOS ---
-def inicializar_usuarios_con_roles_y_passwords():
-    """
-    Este script se ejecuta UNA SOLA VEZ para añadir passwords y roles
-    a los usuarios existentes en la base de datos.
-    """
-    usuarios = db.usuarios.find()
-    admin_emails = ["kevin@example.com", "alex@example.com"] # Lista de administradores
 
-    for usuario in usuarios:
-        # Revisa si el usuario ya tiene una contraseña para no sobrescribirla.
-        if 'password' not in usuario:
-            rol = 'admin' if usuario['correo'] in admin_emails else 'cliente'
-            
-            # 🔐 AQUÍ OCURRE LA MAGIA DEL HASHEO
-            # Se genera el hash para la contraseña "password123"
-            password_hasheada = generate_password_hash("password123")
-            
-            db.usuarios.update_one(
-                {'_id': usuario['_id']},
-                {'$set': {'password': password_hasheada, 'rol': rol}}
-            )
-    print("Usuarios actualizados con roles y contraseñas hasheadas.")
-
-# ... (el resto de las funciones sin cambios) ...
-
+# --- Función para mapear el campo _id a id ---
 def _mapear_id(documento):
     if documento and '_id' in documento:
         documento['id'] = str(documento['_id'])
     return documento
 
-# --- IMPORTANTE: SCRIPT ÚNICO PARA ACTUALIZAR USUARIOS ---
-#def inicializar_usuarios_con_roles_y_passwords():
-    """
-    Este script se ejecuta UNA SOLA VEZ para añadir passwords y roles
-    a los usuarios existentes en la base de datos.
-    """
-    usuarios = db.usuarios.find()
-    admin_email = "kevin@example.com" # Definimos un admin
-
-    for usuario in usuarios:
-        # Si el usuario no tiene un rol, se lo asignamos
-        if 'rol' not in usuario:
-            rol = 'admin' if usuario['correo'] == admin_email else 'cliente'
-            # Hasheamos una contraseña por defecto "password123"
-            password_hasheada = generate_password_hash("password123")
-            
-            db.usuarios.update_one(
-                {'_id': usuario['_id']},
-                {'$set': {'password': password_hasheada, 'rol': rol}}
-            )
-    print("Usuarios actualizados con roles y contraseñas hasheadas.")
-
-# Llama a esta función una vez desde tu terminal para preparar la DB:
-# python -c 'from database import inicializar_usuarios_con_roles_y_passwords; inicializar_usuarios_con_roles_y_passwords()'
-
-
+# --- Funciones de Usuario ---
 def obtener_usuario_por_correo(correo):
     """Busca un usuario por su correo electrónico."""
     usuario = db.usuarios.find_one({'correo': correo})
     return _mapear_id(usuario)
 
+def obtener_usuario_por_id(usuario_id):
+    try:
+        usuario = db.usuarios.find_one({'_id': ObjectId(usuario_id)})
+        return _mapear_id(usuario)
+    except Exception:
+        return None
+
+
+# -- Función para crear un nuevo usuario ---
 def crear_usuario(nombre, correo, password):
     """Crea un nuevo usuario con contraseña hasheada y rol de cliente."""
     usuario = {
@@ -81,7 +41,12 @@ def crear_usuario(nombre, correo, password):
     db.usuarios.insert_one(usuario)
     return usuario
 
-# --- Las demás funciones permanecen igual ---
+def obtener_usuarios():
+    usuarios_cursor = db.usuarios.find()
+    return [_mapear_id(user) for user in usuarios_cursor]
+
+################################################################################################################
+# --- Funciones de Producto y Categoría ---
 def obtener_categorias():
     categorias_cursor = db.categorias.find()
     return [_mapear_id(cat) for cat in categorias_cursor]
@@ -136,13 +101,84 @@ def obtener_reseñas():
     reseñas_cursor = db.reseñas.find()
     return [_mapear_id(res) for res in reseñas_cursor]
 
-def obtener_usuarios():
-    usuarios_cursor = db.usuarios.find()
-    return [_mapear_id(user) for user in usuarios_cursor]
-    
-def obtener_usuario_por_id(usuario_id):
+def crear_reseña(producto_id, usuario_id, calificacion, comentario):
+    reseña = {
+        "producto_id": producto_id,
+        "usuario_id": usuario_id,
+        "calificacion": calificacion,
+        "comentario": comentario
+    }
+    db.reseñas.insert_one(reseña)
+    return reseña
+
+def eliminar_reseña(reseña_id):
     try:
-        usuario = db.usuarios.find_one({'_id': ObjectId(usuario_id)})
-        return _mapear_id(usuario)
+        resultado = db.reseñas.delete_one({'_id': ObjectId(reseña_id)})
+        return resultado.deleted_count > 0
     except Exception:
-        return None
+        return False
+
+# --- Funciones de Carrito ---    
+def obtener_carrito_por_usuario(usuario_id_numerico):
+    """
+    Obtiene los productos en el carrito de un usuario y calcula el total
+    usando un pipeline de agregación.
+    """
+    pipeline = [
+        # 1. Encontrar el carrito del usuario
+        {'$match': {'usuario_id': usuario_id_numerico}},
+        # 2. Desenrollar el array de productos para procesar cada ID individualmente
+        {'$unwind': '$producto_id'},
+        # 3. Contar cuántas veces aparece cada producto (cantidad)
+        {'$group': {'_id': '$producto_id', 'cantidad': {'$sum': 1}}},
+        # 4. Unir con la colección de productos para obtener los detalles
+        {
+            '$lookup': {
+                'from': 'productos',
+                'localField': '_id',
+                'foreignField': 'producto_id',
+                'as': 'producto_info'
+            }
+        },
+        # 5. Desenrollar el resultado del lookup
+        {'$unwind': '$producto_info'},
+        # 6. Darle forma al documento final, calculando el subtotal
+        {
+            '$project': {
+                '_id': 0,
+                'id': '$producto_info._id',
+                'nombre': '$producto_info.nombre',
+                'precio': '$producto_info.precio',
+                'cantidad': '$cantidad',
+                'subtotal': {'$multiply': ['$cantidad', '$producto_info.precio']}
+            }
+        }
+    ]
+    
+    items_cursor = db.carrito.aggregate(pipeline)
+    items = [_mapear_id(item) for item in items_cursor]
+    
+    # Calcular el total sumando los subtotales
+    total = sum(item['subtotal'] for item in items)
+    db.carrito.update_one(
+        {'usuario_id': usuario_id_numerico},
+        {'$set': {'total': total}},
+        upsert=True)
+    return {'items': items, 'total': total}
+
+
+def agregar_producto_al_carrito_db(usuario_id_numerico, producto_id_numerico):
+    """Agrega un producto al carrito de un usuario en la BD."""
+    db.carrito.update_one(
+        {'usuario_id': usuario_id_numerico},
+        {'$push': {'producto_id': producto_id_numerico},},
+        
+        upsert=True  # Crea el carrito si no existe
+    )
+
+def vaciar_carrito_db(usuario_id_numerico):
+    """Vacía el carrito de un usuario en la BD (establece el array de productos a vacío)."""
+    db.carrito.update_one(
+        {'usuario_id': usuario_id_numerico},
+        {'$set': {'producto_id': [], 'total': 0}}    
+    )
