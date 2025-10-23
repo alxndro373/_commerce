@@ -117,8 +117,65 @@ def detalle_producto(producto_id):
     producto = obtener_producto_por_id(producto_id)
     if producto is None:
         abort(404)
-    # ... Lógica de reseñas ...
-    return render_template('producto.html', producto=producto, reseñas=[])
+    
+    # Obtener reseñas del producto
+    reseñas = obtener_reseñas_por_producto(producto_id)
+    
+    # Calcular promedio de calificaciones
+    estadisticas_reseñas = calcular_promedio_calificacion(producto_id)
+    
+    # Verificar si el usuario puede escribir una reseña
+    puede_reseñar = False
+    ya_reseñó = False
+    
+    if 'user_id' in session:
+        puede_reseñar = verificar_usuario_puede_reseñar(session['user_id'], producto_id)
+        ya_reseñó = usuario_ya_reseño_producto(session['user_id'], producto_id)
+    
+    return render_template(
+        'producto.html', 
+        producto=producto, 
+        reseñas=reseñas,
+        estadisticas_reseñas=estadisticas_reseñas,
+        puede_reseñar=puede_reseñar,
+        ya_reseñó=ya_reseñó
+    )
+
+@app.route('/producto/<string:producto_id>/reseña', methods=['POST'])
+@login_required
+def crear_reseña_producto(producto_id):
+    """Crea una nueva reseña para un producto."""
+    try:
+        calificacion = int(request.form.get('calificacion'))
+        comentario = request.form.get('comentario', '').strip()
+        
+        # Validaciones
+        if not (1 <= calificacion <= 5):
+            flash('La calificación debe ser entre 1 y 5 estrellas.', 'danger')
+            return redirect(url_for('detalle_producto', producto_id=producto_id))
+        
+        if len(comentario) < 10:
+            flash('El comentario debe tener al menos 10 caracteres.', 'danger')
+            return redirect(url_for('detalle_producto', producto_id=producto_id))
+        
+        # Verificar que el usuario puede reseñar este producto
+        if not verificar_usuario_puede_reseñar(session['user_id'], producto_id):
+            flash('Solo puedes reseñar productos que hayas comprado.', 'danger')
+            return redirect(url_for('detalle_producto', producto_id=producto_id))
+        
+        # Verificar que no haya reseñado antes
+        if usuario_ya_reseño_producto(session['user_id'], producto_id):
+            flash('Ya has escrito una reseña para este producto.', 'warning')
+            return redirect(url_for('detalle_producto', producto_id=producto_id))
+        
+        # Crear la reseña
+        crear_reseña(producto_id, session['user_id'], calificacion, comentario)
+        flash('¡Reseña agregada exitosamente!', 'success')
+        
+    except Exception as e:
+        flash(f'Error al crear la reseña: {str(e)}', 'danger')
+    
+    return redirect(url_for('detalle_producto', producto_id=producto_id))
 
 @app.route('/usuario/<string:usuario_id>')
 @login_required  # RUTA PROTEGIDA
