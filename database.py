@@ -180,15 +180,178 @@ def obtener_reseñas():
     reseñas_cursor = db.reseñas.find()
     return [_mapear_id(res) for res in reseñas_cursor]
 
+def obtener_reseñas_por_producto(producto_id):
+    """Obtiene todas las reseñas de un producto específico con información del usuario."""
+    try:
+        # Convertir producto_id a ObjectId si es necesario
+        if isinstance(producto_id, str):
+            producto_object_id = ObjectId(producto_id)
+        else:
+            producto_object_id = producto_id
+        
+        pipeline = [
+            # Buscar reseñas por producto_id (solo ObjectId)
+            {
+                '$match': {
+                    'producto_id': producto_object_id
+                }
+            },
+            # Join con usuarios para obtener nombre del autor
+            {
+                '$lookup': {
+                    'from': 'usuarios',
+                    'localField': 'usuario_id',
+                    'foreignField': '_id',
+                    'as': 'usuario_info'
+                }
+            },
+            # Descomponer usuario_info
+            {
+                '$unwind': {
+                    'path': '$usuario_info',
+                    'preserveNullAndEmptyArrays': True
+                }
+            },
+            # Proyectar campos necesarios
+            {
+                '$project': {
+                    'producto_id': 1,
+                    'calificacion': 1,
+                    'comentario': 1,
+                    'fecha': 1,
+                    'usuario_nombre': '$usuario_info.nombre',
+                    'usuario_id': 1
+                }
+            },
+            # Ordenar por fecha más reciente
+            {
+                '$sort': {'fecha': -1}
+            }
+        ]
+        
+        reseñas_cursor = db.reseñas.aggregate(pipeline)
+        return [_mapear_id(reseña) for reseña in reseñas_cursor]
+        
+    except Exception as e:
+        print(f"Error en obtener_reseñas_por_producto: {e}")
+        return []
+
 def crear_reseña(producto_id, usuario_id, calificacion, comentario):
+    """Crea una nueva reseña para un producto."""
+    from datetime import datetime
+    import pytz
+    
+    # Usar timezone de Ciudad de México
+    mexico_tz = pytz.timezone('America/Mexico_City')
+    fecha_actual = datetime.now(mexico_tz)
+    
+    # Convertir IDs a ObjectId si son strings
+    if isinstance(producto_id, str):
+        producto_object_id = ObjectId(producto_id)
+    else:
+        producto_object_id = producto_id
+        
+    if isinstance(usuario_id, str):
+        usuario_object_id = ObjectId(usuario_id)
+    else:
+        usuario_object_id = usuario_id
+    
     reseña = {
-        "producto_id": producto_id,
-        "usuario_id": usuario_id,
-        "calificacion": calificacion,
-        "comentario": comentario
+        "producto_id": producto_object_id,
+        "usuario_id": usuario_object_id,
+        "calificacion": int(calificacion),
+        "comentario": comentario,
+        "fecha": fecha_actual
     }
-    db.reseñas.insert_one(reseña)
-    return reseña
+    
+    resultado = db.reseñas.insert_one(reseña)
+    return resultado.inserted_id
+
+def verificar_usuario_puede_reseñar(usuario_id, producto_id):
+    """Verifica si un usuario puede escribir una reseña para un producto (debe haberlo comprado)."""
+    try:
+        if isinstance(usuario_id, str):
+            usuario_object_id = ObjectId(usuario_id)
+        else:
+            usuario_object_id = usuario_id
+            
+        if isinstance(producto_id, str):
+            producto_object_id = ObjectId(producto_id)
+        else:
+            producto_object_id = producto_id
+        
+        # Buscar si el usuario ha comprado este producto
+        pedido_con_producto = db.pedidos.find_one({
+            'usuario_id': usuario_object_id,
+            'productos.producto_id': producto_object_id,
+            'estado': {'$in': ['enviado', 'entregado']}  # Solo pedidos enviados o entregados
+        })
+        
+        return pedido_con_producto is not None
+        
+    except Exception:
+        return False
+
+def usuario_ya_reseño_producto(usuario_id, producto_id):
+    """Verifica si un usuario ya escribió una reseña para este producto."""
+    try:
+        if isinstance(usuario_id, str):
+            usuario_object_id = ObjectId(usuario_id)
+        else:
+            usuario_object_id = usuario_id
+            
+        if isinstance(producto_id, str):
+            producto_object_id = ObjectId(producto_id)
+        else:
+            producto_object_id = producto_id
+        
+        reseña_existente = db.reseñas.find_one({
+            'usuario_id': usuario_object_id,
+            '$or': [
+                {'producto_id': producto_object_id},
+                {'producto_id': producto_id}
+            ]
+        })
+        
+        return reseña_existente is not None
+        
+    except Exception:
+        return False
+
+def calcular_promedio_calificacion(producto_id):
+    """Calcula el promedio de calificaciones de un producto."""
+    try:
+        if isinstance(producto_id, str):
+            producto_object_id = ObjectId(producto_id)
+        else:
+            producto_object_id = producto_id
+        
+        pipeline = [
+            {
+                '$match': {
+                    'producto_id': producto_object_id
+                }
+            },
+            {
+                '$group': {
+                    '_id': None,
+                    'promedio': {'$avg': '$calificacion'},
+                    'total_reseñas': {'$sum': 1}
+                }
+            }
+        ]
+        
+        resultado = list(db.reseñas.aggregate(pipeline))
+        if resultado:
+            return {
+                'promedio': round(resultado[0]['promedio'], 1),
+                'total': resultado[0]['total_reseñas']
+            }
+        else:
+            return {'promedio': 0, 'total': 0}
+            
+    except Exception:
+        return {'promedio': 0, 'total': 0}
 
 def eliminar_reseña(reseña_id):
     try:
