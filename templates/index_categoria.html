@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center fw-bold text-dark mb-4">Gestión de Categorías</h2>
+
+  <div class="text-center mb-4">
+    <a href="{{ url_for('crear_categoria_admin') }}" class="btn btn-success">Crear nueva categoría</a>
+  </div>
+
+  {% if categorias %}
+  <table class="table table-bordered text-center">
+    <thead class="table-info">
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Activa</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for categoria in categorias %}
+      <tr>
+        <td>{{ categoria.id }}</td>
+        <td>{{ categoria.nombre }}</td>
+        <td>{{ categoria.descripcion }}</td>
+        <td>{{ 'Sí' if categoria.activa else 'No' }}</td>
+        <td>
+          <a href="{{ url_for('editar_categoria_admin', id=categoria.id) }}" class="btn btn-primary">Editar</a>
+          <a href="{{ url_for('eliminar_categoria_admin', id=categoria.id) }}" class="btn btn-danger"
+             onclick="return confirm('¿Seguro que deseas eliminar esta categoría?');">Eliminar</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-info text-center">
+    No hay categorías registradas.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

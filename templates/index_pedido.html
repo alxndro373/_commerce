@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="text-center fw-bold text-dark mb-4">Gestión de Pedidos</h2>
+
+    <div class="text-center mb-4">
+    <a href="{{ url_for('crear_pedido_admin') }}" class="btn btn-success">Crear nuevo pedido</a>
+    </div>
+
+    {% if pedidos %}
+    <table class="table table-bordered text-center">
+    <thead class="table-info">
+        <tr>
+        <th>ID Pedido</th>
+        <th>Usuario</th>
+        <th>Productos</th>
+        <th>Total</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pedido in pedidos %}
+        <tr>
+            <td>{{ pedido.id }}</td>
+            <td>{{ pedido.usuario_nombre or 'Desconocido' }}</td>
+            <td>
+                {% for producto in pedido.productos %}
+                    {{ producto.nombre }} (x{{ producto.cantidad }}){% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+            <td>${{ "%.2f"|format(pedido.total) }}</td>
+            <td>{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else 'N/A' }}</td>
+            <td>
+                <span class="badge {% if pedido.estado == 'secondary' %}bg-primary{% elif pedido.estado == 'enviado' %}bg-warning{% elif pedido.estado == 'entregado' %}bg-success{% elif pedido.estado == 'cancelado' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ pedido.estado }}
+                </span>
+            </td>
+            <td>
+            <a href="{{ url_for('ver_pedido_admin', id=pedido.id) }}" class="btn btn-primary btn-sm">Ver Pedido</a>
+            <a href="{{ url_for('eliminar_pedido_admin', id=pedido.id) }}" class="btn btn-danger btn-sm"
+            onclick="return confirm('¿Seguro que deseas eliminar este pedido?');">Eliminar</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No hay pedidos disponibles.
+    </div>    
+        {% endif %}
+    </div>
+{% endblock %}

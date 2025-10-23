@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center fw-bold text-dark mb-4">Crear Nuevo Pedido</h2>
+
+    <form method="POST" id="formCrearPedido">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="usuario_id" class="form-label">Usuario *</label>
+                    <select class="form-control" id="usuario_id" name="usuario_id" required>
+                        <option value="">Seleccionar usuario...</option>
+                        {% for usuario in usuarios %}
+                        <option value="{{ usuario.id }}">{{ usuario.nombre }} ({{ usuario.correo }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="fecha" class="form-label">Fecha</label>
+                    <input type="text" class="form-control" id="fecha" name="fecha" 
+                           value="" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select class="form-control" id="estado" name="estado">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Productos del Pedido</label>
+                    <div id="productos-container">
+                        <div class="producto-item border p-3 mb-2">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <select class="form-control producto-select" name="producto_id" onchange="actualizarTotal()">
+                                        <option value="">Seleccionar producto...</option>
+                                        {% for producto in productos %}
+                                        <option value="{{ producto.id }}" data-precio="{{ producto.precio }}">
+                                            {{ producto.nombre }} - ${{ "%.2f"|format(producto.precio) }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control cantidad-input" name="cantidad" 
+                                           placeholder="Cantidad" min="1" value="1" onchange="actualizarTotal()">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-success btn-sm mb-3" onclick="agregarProducto()">
+                        + Agregar Producto
+                    </button>
+                    
+                    <div class="alert alert-info">
+                        <strong>Total Estimado: $<span id="total-estimado">0.00</span></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-success">Crear Pedido</button>
+            <a href="{{ url_for('listar_pedidos_admin') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function agregarProducto() {
+    const container = document.getElementById('productos-container');
+    const nuevoProducto = container.firstElementChild.cloneNode(true);
+    
+    // Limpiar valores
+    nuevoProducto.querySelector('.producto-select').value = '';
+    nuevoProducto.querySelector('.cantidad-input').value = '1';
+    
+    container.appendChild(nuevoProducto);
+}
+
+function eliminarProducto(button) {
+    const container = document.getElementById('productos-container');
+    if (container.children.length > 1) {
+        button.closest('.producto-item').remove();
+        actualizarTotal();
+    }
+}
+
+function actualizarTotal() {
+    let total = 0;
+    const productosItems = document.querySelectorAll('.producto-item');
+    
+    productosItems.forEach(item => {
+        const select = item.querySelector('.producto-select');
+        const cantidadInput = item.querySelector('.cantidad-input');
+        
+        if (select.value && cantidadInput.value) {
+            const precio = parseFloat(select.options[select.selectedIndex].dataset.precio || 0);
+            const cantidad = parseInt(cantidadInput.value || 0);
+            total += precio * cantidad;
+        }
+    });
+    
+    document.getElementById('total-estimado').textContent = total.toFixed(2);
+}
+
+// Actualizar fecha en tiempo real
+setInterval(() => {
+    const now = new Date();
+    const mexicoTime = new Intl.DateTimeFormat('es-MX', {
+        timeZone: 'America/Mexico_City',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(now);
+    
+    document.getElementById('fecha').value = mexicoTime.replace(',', '');
+}, 1000);
+</script>
+{% endblock %}

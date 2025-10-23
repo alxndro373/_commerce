@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center fw-bold mb-4">Actualizar Producto</h2>
+  <form action="{{ url_for('editar_producto_admin', id=producto.id) }}" method="POST" class="border p-4 rounded shadow-sm bg-light">
+    <div class="mb-3">
+        <label for="producto.id" class="form-label fw-bold">ID Producto</label>
+        <input type="text" id="producto.id" name="producto.id" class="form-control" value="{{ producto.id }}" readonly>
+    </div>
+    <div class="mb-3">
+        <label for="nombre" class="form-label fw-bold">Nombre</label>
+        <input type="text" id="nombre" name="nombre" class="form-control" value="{{ producto.nombre }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="descripcion" class="form-label fw-bold">Descripción</label>
+        <textarea id="descripcion" name="descripcion" class="form-control" rows="2" required>{{ producto.descripcion }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="precio" class="form-label fw-bold">Precio</label>
+        <input type="number" step="0.01" id="precio" name="precio" class="form-control" value="{{ producto.precio }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Categoría</label>
+        <select name="categoria_id" class="form-select" required>
+            <option value="">Selecciona Categoría</option>
+            {% for c in categoria %}
+                <option value="{{ c.categoria_id }}" {% if c.categoria_id == producto.categoria_id %}selected{% endif %}>{{ c.categoria_id }} - {{ c.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="inventario" class="form-label fw-bold">Inventario</label>
+        <input type="number" id="inventario" name="inventario" class="form-control" value="{{ producto.inventario }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="activa" class="form-label fw-bold">¿Está activo?</label>
+        <select id="activa" name="activa" class="form-select" required>
+            <option value="1" {% if producto.activa %}selected{% endif %}>Sí</option>
+            <option value="0" {% if not producto.activa %}selected{% endif %}>No</option>
+        </select>
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-success fw-bold">Guardar Cambios</button>
+        <a href="{{ url_for('listar_producto_admin') }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
