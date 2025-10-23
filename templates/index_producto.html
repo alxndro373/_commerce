@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center fw-bold text-dark mb-4">Gestión de Productos</h2>
+
+  <div class="text-center mb-4">
+    <a href="{{ url_for('crear_producto_admin') }}" class="btn btn-success">Crear nuevo producto</a>
+  </div>
+
+  {% if productos %}
+  <table class="table table-bordered text-center">
+    <thead class="table-info">
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+        <th>Categoría</th>
+        <th>Inventario</th>
+        <th>Activo</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for producto in productos %}
+      <tr>
+        <td>{{ producto.id }}</td>
+        <td>{{ producto.nombre }}</td>
+        <td>{{ producto.descripcion }}</td>
+        <td>{{ producto.precio }}</td>
+        <td>{{ producto.categoria_nombre or 'Sin categoría' }}</td>
+        <td>{{ producto.inventario }}</td>
+        <td>{{ 'Sí' if producto.activo else 'No' }}</td>
+        <td>
+          <a href="{{ url_for('editar_producto_admin', id=producto.id) }}" class="btn btn-primary">Editar</a>
+          <a href="{{ url_for('eliminar_producto_admin', id=producto.id) }}" class="btn btn-danger"
+             onclick="return confirm('¿Seguro que deseas eliminar este producto?');">Eliminar</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-info text-center">
+    No hay productos registrados.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -30,7 +30,9 @@
 </table>
 <div class="d-flex justify-content-end mt-4 gap-2">
     <a href="{{ url_for('vaciar_carrito') }}" class="btn btn-danger">Vaciar Carrito</a>
-    <a href="#" class="btn btn-success">Proceder al Pago</a>
+    <form action="{{ url_for('proceder_pago') }}" method="POST" class="d-inline">
+        <button type="submit" class="btn btn-success">Proceder al Pago</button>
+    </form>
 </div>
 {% else %}
 <div class="alert alert-info text-center">

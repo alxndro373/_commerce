@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">Mis Pedidos</h2>
+
+{% if pedidos %}
+<div class="row">
+    {% for pedido in pedidos %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Pedido #{{ pedido.id }}</h5>
+                <span class="badge {% if pedido.estado == 'secondary' %}bg-primary{% elif pedido.estado == 'enviado' %}bg-warning{% elif pedido.estado == 'entregado' %}bg-success{% elif pedido.estado == 'cancelado' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ pedido.estado }}
+                </span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else 'No disponible' }}<br>
+                    <strong>Total:</strong> ${{ "%.2f"|format(pedido.total) }}<br>
+                    <strong>Productos:</strong> {{ pedido.productos|length }} artículo(s)
+                </p>
+                <div class="mb-3">
+                    <h6>Productos:</h6>
+                    <ul class="list-unstyled">
+                        {% for producto in pedido.productos %}
+                        <li class="small text-muted">
+                            • {{ producto.nombre }} (x{{ producto.cantidad }}) - ${{ "%.2f"|format(producto.subtotal) }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <a href="{{ url_for('detalle_pedido', pedido_id=pedido.id) }}" class="btn btn-primary">
+                    Ver Detalles
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <h4>No tienes pedidos aún</h4>
+    <p>Cuando realices tu primera compra, aparecerá aquí.</p>
+    <a href="{{ url_for('listar_productos') }}" class="btn btn-primary">Ver Productos</a>
+</div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{{ url_for('listar_productos') }}" class="btn btn-secondary">Seguir Comprando</a>
+</div>
+{% endblock %}
