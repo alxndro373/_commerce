@@ -1,31 +1,86 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center fw-bold mb-4">Actualizar Categoría</h2>
-  <form action="{{ url_for('editar_categoria_admin', id=categoria.id) }}" method="POST" class="border p-4 rounded shadow-sm bg-light">
-    <div class="mb-3">
-      <label for="categoria.id" class="form-label fw-bold">ID Categoría</label>
-      <input type="text" id="categoria.id" name="categoria.id" class="form-control" value="{{ categoria.id }}" readonly>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h2 class="text-dark mb-2">
+          <i class="bi bi-tag-fill text-primary me-2"></i>Editar Categoría
+        </h2>
+        <p class="text-muted">Actualiza la información de la categoría</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-tags me-2"></i>Información de la Categoría
+          </h5>
+        </div>
+        <div class="card-body">
+          <form action="{{ url_for('editar_categoria_admin', id=categoria.id) }}" method="POST">
+            
+            <!-- ID de la Categoría (readonly) -->
+            <div class="mb-3">
+              <label for="categoria.id" class="form-label">
+                <i class="bi bi-hash me-2"></i>ID de la Categoría
+              </label>
+              <input type="text" id="categoria.id" name="categoria.id" class="form-control" 
+                     value="{{ categoria.id }}" readonly>
+              <div class="form-text">Identificador único de la categoría (no editable)</div>
+            </div>
+            
+            <!-- Nombre -->
+            <div class="mb-3">
+              <label for="nombre" class="form-label">
+                <i class="bi bi-tag me-2"></i>Nombre de la Categoría *
+              </label>
+              <input type="text" id="nombre" name="nombre" class="form-control" 
+                     value="{{ categoria.nombre }}" required>
+            </div>
+            
+            <!-- Descripción -->
+            <div class="mb-3">
+              <label for="descripcion" class="form-label">
+                <i class="bi bi-file-text me-2"></i>Descripción *
+              </label>
+              <textarea id="descripcion" name="descripcion" class="form-control" rows="3" required>{{ categoria.descripcion }}</textarea>
+              <div class="form-text">Explica qué tipo de productos incluye esta categoría</div>
+            </div>
+            
+            <!-- Estado -->
+            <div class="mb-4">
+              <label for="activa" class="form-label">
+                <i class="bi bi-toggle-on me-2"></i>Estado de la Categoría *
+              </label>
+              <select id="activa" name="activa" class="form-select" required>
+                <option value="1" {% if categoria.activa %}selected{% endif %}>
+                  Activa (visible en la tienda)
+                </option>
+                <option value="0" {% if not categoria.activa %}selected{% endif %}>
+                  Inactiva (oculta en la tienda)
+                </option>
+              </select>
+              <div class="form-text">Las categorías inactivas no serán visibles para los clientes</div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ url_for('listar_categorias') }}" class="btn btn-outline-secondary me-md-2">
+                <i class="bi bi-arrow-left me-2"></i>Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Guardar Cambios
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
     </div>
-    <div class="mb-3">
-      <label for="nombre" class="form-label fw-bold">Nombre</label>
-      <input type="text" id="nombre" name="nombre" class="form-control" value="{{ categoria.nombre }}" required>
-    </div>
-    <div class="mb-3">
-      <label for="descripcion" class="form-label fw-bold">Descripción</label>
-      <textarea id="descripcion" name="descripcion" class="form-control" rows="2" required>{{ categoria.descripcion }}</textarea>
-    </div>
-    <div class="mb-3">
-      <label for="activa" class="form-label fw-bold">¿Está activa?</label>
-      <select id="activa" name="activa" class="form-select" required>
-        <option value="1" {% if categoria.activa %}selected{% endif %}>Sí</option>
-        <option value="0" {% if not categoria.activa %}selected{% endif %}>No</option>
-      </select>
-    </div>
-    <div class="text-center">
-      <button type="submit" class="btn btn-success fw-bold">Guardar Cambios</button>
-      <a href="{{ url_for('listar_categorias') }}" class="btn btn-secondary">Cancelar</a>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

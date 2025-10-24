@@ -1,80 +1,155 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center fw-bold text-dark mb-4">Crear Nuevo Pedido</h2>
+<div class="container mt-4">
+    
+    <!-- Header -->
+    <div class="text-center mb-4">
+        <h2 class="text-dark mb-2">
+            <i class="bi bi-plus-circle text-primary me-2"></i>Crear Nuevo Pedido
+        </h2>
+        <p class="text-muted">Registra un nuevo pedido en el sistema</p>
+    </div>
 
     <form method="POST" id="formCrearPedido">
         <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="usuario_id" class="form-label">Usuario *</label>
-                    <select class="form-control" id="usuario_id" name="usuario_id" required>
-                        <option value="">Seleccionar usuario...</option>
-                        {% for usuario in usuarios %}
-                        <option value="{{ usuario.id }}">{{ usuario.nombre }} ({{ usuario.correo }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
+            
+            <!-- Información del pedido -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle me-2"></i>Información del Pedido
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        
+                        <div class="mb-3">
+                            <label for="usuario_id" class="form-label">
+                                <i class="bi bi-person me-2"></i>Usuario *
+                            </label>
+                            <select class="form-select" id="usuario_id" name="usuario_id" required>
+                                <option value="">Seleccionar usuario...</option>
+                                {% for usuario in usuarios %}
+                                <option value="{{ usuario.id }}">
+                                    {{ usuario.nombre }} ({{ usuario.correo }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Cliente que realiza el pedido</div>
+                        </div>
 
-                <div class="mb-3">
-                    <label for="fecha" class="form-label">Fecha</label>
-                    <input type="text" class="form-control" id="fecha" name="fecha" 
-                           value="" readonly>
-                </div>
+                        <div class="mb-3">
+                            <label for="fecha" class="form-label">
+                                <i class="bi bi-calendar me-2"></i>Fecha y Hora
+                            </label>
+                            <input type="text" class="form-control" id="fecha" name="fecha" 
+                                   value="" readonly>
+                            <div class="form-text">Fecha y hora actual (se actualiza automáticamente)</div>
+                        </div>
 
-                <div class="mb-3">
-                    <label for="estado" class="form-label">Estado</label>
-                    <select class="form-control" id="estado" name="estado">
-                        <option value="pendiente">Pendiente</option>
-                        <option value="enviado">Enviado</option>
-                        <option value="entregado">Entregado</option>
-                        <option value="cancelado">Cancelado</option>
-                    </select>
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">
+                                <i class="bi bi-tag me-2"></i>Estado Inicial
+                            </label>
+                            <select class="form-select" id="estado" name="estado">
+                                <option value="pendiente" selected>
+                                    <i class="bi bi-clock"></i> Pendiente
+                                </option>
+                                <option value="enviado">
+                                    <i class="bi bi-truck"></i> Enviado
+                                </option>
+                                <option value="entregado">
+                                    <i class="bi bi-check-circle"></i> Entregado
+                                </option>
+                                <option value="cancelado">
+                                    <i class="bi bi-x-circle"></i> Cancelado
+                                </option>
+                            </select>
+                            <div class="form-text">Estado inicial del pedido</div>
+                        </div>
+                        
+                    </div>
                 </div>
             </div>
             
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">Productos del Pedido</label>
-                    <div id="productos-container">
-                        <div class="producto-item border p-3 mb-2">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <select class="form-control producto-select" name="producto_id" onchange="actualizarTotal()">
-                                        <option value="">Seleccionar producto...</option>
-                                        {% for producto in productos %}
-                                        <option value="{{ producto.id }}" data-precio="{{ producto.precio }}">
-                                            {{ producto.nombre }} - ${{ "%.2f"|format(producto.precio) }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control cantidad-input" name="cantidad" 
-                                           placeholder="Cantidad" min="1" value="1" onchange="actualizarTotal()">
-                                </div>
-                                <div class="col-md-1">
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">×</button>
+            <!-- Productos del pedido -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bag me-2"></i>Productos del Pedido
+                        </h5>
+                        <button type="button" class="btn btn-success btn-sm" onclick="agregarProducto()">
+                            <i class="bi bi-plus me-1"></i>Agregar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        
+                        <div id="productos-container">
+                            <div class="producto-item border rounded p-3 mb-3 bg-light">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <label class="form-label small">
+                                            <i class="bi bi-box me-1"></i>Producto
+                                        </label>
+                                        <select class="form-select form-select-sm producto-select" 
+                                                name="producto_id" onchange="actualizarTotal()" required>
+                                            <option value="">Seleccionar producto...</option>
+                                            {% for producto in productos %}
+                                            <option value="{{ producto.id }}" data-precio="{{ producto.precio }}">
+                                                {{ producto.nombre }} - ${{ "%.2f"|format(producto.precio) }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small">
+                                            <i class="bi bi-hash me-1"></i>Cantidad
+                                        </label>
+                                        <input type="number" class="form-control form-control-sm cantidad-input" 
+                                               name="cantidad" placeholder="1" min="1" value="1" 
+                                               onchange="actualizarTotal()" required>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label small d-block">&nbsp;</label>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                onclick="eliminarProducto(this)" title="Eliminar producto">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <button type="button" class="btn btn-success btn-sm mb-3" onclick="agregarProducto()">
-                        + Agregar Producto
-                    </button>
-                    
-                    <div class="alert alert-info">
-                        <strong>Total Estimado: $<span id="total-estimado">0.00</span></strong>
+                        
+                        <!-- Total -->
+                        <div class="alert alert-success mb-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">
+                                    <i class="bi bi-receipt me-2"></i>Total Estimado:
+                                </span>
+                                <span class="fw-bold fs-5">
+                                    $<span id="total-estimado">0.00</span>
+                                </span>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
+            
         </div>
 
-        <div class="text-center">
-            <button type="submit" class="btn btn-success">Crear Pedido</button>
-            <a href="{{ url_for('listar_pedidos_admin') }}" class="btn btn-secondary">Cancelar</a>
+        <!-- Buttons -->
+        <div class="text-center mt-4">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('listar_pedidos_admin') }}" class="btn btn-outline-secondary me-md-2">
+                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-lg me-2"></i>Crear Pedido
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -89,6 +164,7 @@ function agregarProducto() {
     nuevoProducto.querySelector('.cantidad-input').value = '1';
     
     container.appendChild(nuevoProducto);
+    actualizarTotal();
 }
 
 function eliminarProducto(button) {
@@ -96,6 +172,8 @@ function eliminarProducto(button) {
     if (container.children.length > 1) {
         button.closest('.producto-item').remove();
         actualizarTotal();
+    } else {
+        alert('Debe mantener al menos un producto en el pedido');
     }
 }
 
@@ -118,7 +196,7 @@ function actualizarTotal() {
 }
 
 // Actualizar fecha en tiempo real
-setInterval(() => {
+function actualizarFecha() {
     const now = new Date();
     const mexicoTime = new Intl.DateTimeFormat('es-MX', {
         timeZone: 'America/Mexico_City',
@@ -126,10 +204,18 @@ setInterval(() => {
         month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        second: '2-digit'
     }).format(now);
     
     document.getElementById('fecha').value = mexicoTime.replace(',', '');
-}, 1000);
+}
+
+// Actualizar fecha cada segundo
+setInterval(actualizarFecha, 1000);
+// Inicializar fecha
+actualizarFecha();
+// Inicializar total
+actualizarTotal();
 </script>
 {% endblock %}

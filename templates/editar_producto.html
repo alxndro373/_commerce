@@ -1,48 +1,135 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center fw-bold mb-4">Actualizar Producto</h2>
-  <form action="{{ url_for('editar_producto_admin', id=producto.id) }}" method="POST" class="border p-4 rounded shadow-sm bg-light">
-    <div class="mb-3">
-        <label for="producto.id" class="form-label fw-bold">ID Producto</label>
-        <input type="text" id="producto.id" name="producto.id" class="form-control" value="{{ producto.id }}" readonly>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h2 class="text-dark mb-2">
+          <i class="bi bi-pencil-square text-primary me-2"></i>Editar Producto
+        </h2>
+        <p class="text-muted">Actualiza la información del producto</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-box-seam me-2"></i>Información del Producto
+          </h5>
+        </div>
+        <div class="card-body">
+          <form action="{{ url_for('editar_producto_admin', id=producto.id) }}" method="POST">
+            
+            <!-- ID del Producto (readonly) -->
+            <div class="mb-3">
+              <label for="producto.id" class="form-label">
+                <i class="bi bi-hash me-2"></i>ID del Producto
+              </label>
+              <input type="text" id="producto.id" name="producto.id" class="form-control" 
+                     value="{{ producto.id }}" readonly>
+              <div class="form-text">Identificador único del producto (no editable)</div>
+            </div>
+            
+            <!-- Nombre -->
+            <div class="mb-3">
+              <label for="nombre" class="form-label">
+                <i class="bi bi-tag me-2"></i>Nombre del Producto *
+              </label>
+              <input type="text" id="nombre" name="nombre" class="form-control" 
+                     value="{{ producto.nombre }}" required>
+            </div>
+            
+            <!-- Descripción -->
+            <div class="mb-3">
+              <label for="descripcion" class="form-label">
+                <i class="bi bi-file-text me-2"></i>Descripción *
+              </label>
+              <textarea id="descripcion" name="descripcion" class="form-control" rows="3" required>{{ producto.descripcion }}</textarea>
+            </div>
+            
+            <!-- Precio e Inventario -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="precio" class="form-label">
+                    <i class="bi bi-currency-dollar me-2"></i>Precio *
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" id="precio" name="precio" class="form-control" 
+                           value="{{ producto.precio }}" required>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="inventario" class="form-label">
+                    <i class="bi bi-boxes me-2"></i>Stock Disponible *
+                  </label>
+                  <input type="number" id="inventario" name="inventario" class="form-control" 
+                         value="{{ producto.inventario }}" min="0" required>
+                </div>
+              </div>
+            </div>
+            
+            <!-- URL de Imagen -->
+            <div class="mb-3">
+              <label for="imagen_url" class="form-label">
+                <i class="bi bi-image me-2"></i>URL de Imagen
+              </label>
+              <input type="url" id="imagen_url" name="imagen_url" class="form-control" 
+                     value="{{ producto.imagen_url or '' }}" maxlength="500"
+                     placeholder="https://ejemplo.com/imagen.jpg">
+              <div class="form-text">Opcional: URL de la imagen del producto</div>
+            </div>
+            
+            <!-- Categoría -->
+            <div class="mb-3">
+              <label for="categoria" class="form-label">
+                <i class="bi bi-tags me-2"></i>Categoría *
+              </label>
+              <select name="categoria" class="form-select" required>
+                <option value="">Selecciona una Categoría</option>
+                {% for c in categoria %}
+                  <option value="{{ c.id }}" {% if c.id == (producto.categoria_id|string) %}selected{% endif %}>
+                    {{ c.nombre }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <!-- Estado -->
+            <div class="mb-4">
+              <label for="activo" class="form-label">
+                <i class="bi bi-toggle-on me-2"></i>Estado del Producto *
+              </label>
+              <select id="activo" name="activo" class="form-select" required>
+                <option value="1" {% if producto.activo %}selected{% endif %}>
+                  <i class="bi bi-check-circle"></i> Activo (visible en la tienda)
+                </option>
+                <option value="0" {% if not producto.activo %}selected{% endif %}>
+                  <i class="bi bi-x-circle"></i> Inactivo (oculto en la tienda)
+                </option>
+              </select>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ url_for('listar_producto_admin') }}" class="btn btn-outline-secondary me-md-2">
+                <i class="bi bi-arrow-left me-2"></i>Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Guardar Cambios
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
     </div>
-    <div class="mb-3">
-        <label for="nombre" class="form-label fw-bold">Nombre</label>
-        <input type="text" id="nombre" name="nombre" class="form-control" value="{{ producto.nombre }}" required>
-    </div>
-    <div class="mb-3">
-        <label for="descripcion" class="form-label fw-bold">Descripción</label>
-        <textarea id="descripcion" name="descripcion" class="form-control" rows="2" required>{{ producto.descripcion }}</textarea>
-    </div>
-    <div class="mb-3">
-        <label for="precio" class="form-label fw-bold">Precio</label>
-        <input type="number" step="0.01" id="precio" name="precio" class="form-control" value="{{ producto.precio }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Categoría</label>
-        <select name="categoria_id" class="form-select" required>
-            <option value="">Selecciona Categoría</option>
-            {% for c in categoria %}
-                <option value="{{ c.categoria_id }}" {% if c.categoria_id == producto.categoria_id %}selected{% endif %}>{{ c.categoria_id }} - {{ c.nombre }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="inventario" class="form-label fw-bold">Inventario</label>
-        <input type="number" id="inventario" name="inventario" class="form-control" value="{{ producto.inventario }}" required>
-    </div>
-    <div class="mb-3">
-        <label for="activa" class="form-label fw-bold">¿Está activo?</label>
-        <select id="activa" name="activa" class="form-select" required>
-            <option value="1" {% if producto.activa %}selected{% endif %}>Sí</option>
-            <option value="0" {% if not producto.activa %}selected{% endif %}>No</option>
-        </select>
-    </div>
-    <div class="text-center">
-        <button type="submit" class="btn btn-success fw-bold">Guardar Cambios</button>
-        <a href="{{ url_for('listar_producto_admin') }}" class="btn btn-secondary">Cancelar</a>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

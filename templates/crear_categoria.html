@@ -1,33 +1,72 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
   <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card shadow">
+    <div class="col-md-8 col-lg-6">
+      
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h2 class="text-dark mb-2">
+          <i class="bi bi-plus-circle text-success me-2"></i>Crear Categoría
+        </h2>
+        <p class="text-muted">Agrega una nueva categoría para organizar productos</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card shadow-sm">
         <div class="card-header bg-success text-white">
-          <h3 class="text-center">Crear Categoría</h3>
+          <h5 class="mb-0">
+            <i class="bi bi-tags me-2"></i>Información de la Categoría
+          </h5>
         </div>
         <div class="card-body">
           <form action="{{ url_for('crear_categoria_admin') }}" method="POST">
+            
+            <!-- Nombre -->
             <div class="mb-3">
-              <label for="nombre" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombre" name="nombre" required>
+              <label for="nombre" class="form-label">
+                <i class="bi bi-tag me-2"></i>Nombre de la Categoría *
+              </label>
+              <input type="text" class="form-control" id="nombre" name="nombre" 
+                     placeholder="Ej: Tarjetas Gráficas, Procesadores..." required>
+              <div class="form-text">Nombre descriptivo para la categoría</div>
             </div>
+            
+            <!-- Descripción -->
             <div class="mb-3">
-              <label for="descripcion" class="form-label">Descripción</label>
-              <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+              <label for="descripcion" class="form-label">
+                <i class="bi bi-file-text me-2"></i>Descripción *
+              </label>
+              <textarea class="form-control" id="descripcion" name="descripcion" rows="3" 
+                        placeholder="Describe el tipo de productos que incluirá esta categoría..." required></textarea>
+              <div class="form-text">Explica qué productos pertenecen a esta categoría</div>
             </div>
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="activa" name="activa" value="1">
-              <label class="form-check-label" for="activa">¿Está activa?</label>
+            
+            <!-- Estado -->
+            <div class="mb-4">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="activa" name="activa" value="1" checked>
+                <label class="form-check-label" for="activa">
+                  <i class="bi bi-check-circle me-2"></i>Categoría activa (visible en la tienda)
+                </label>
+              </div>
+              <div class="form-text">Las categorías inactivas no serán visibles para los clientes</div>
             </div>
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-success">Guardar Categoría</button>
-              <a href="{{ url_for('listar_categorias') }}" class="btn btn-secondary">Cancelar</a>
+            
+            <!-- Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ url_for('listar_categorias') }}" class="btn btn-outline-secondary me-md-2">
+                <i class="bi bi-arrow-left me-2"></i>Cancelar
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-2"></i>Guardar Categoría
+              </button>
             </div>
+            
           </form>
         </div>
       </div>
+      
     </div>
   </div>
 </div>

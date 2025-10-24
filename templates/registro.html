@@ -1,35 +1,56 @@
 {% extends "base.html" %}
 
-{% block title %}Registro de Usuario{% endblock %}
+{% block title %}Registro - VZTECH{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Crear una Cuenta</h2>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('registro') }}">
-                        <div class="mb-3">
-                            <label for="nombre" class="form-label">Nombre Completo</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="correo" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="correo" name="correo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
-                    </form>
-                </div>
-                <div class="card-footer text-center">
-                    <p>¿Ya tienes una cuenta? <a href="{{ url_for('login') }}">Inicia sesión aquí</a></p>
-                </div>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="text-center mb-4">
+            <h2>Crear Cuenta</h2>
+            <p class="text-muted">Únete a la comunidad VZTECH</p>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center">
+                <h5 class="mb-0">Registrarse es gratis</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('registro') }}">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre Completo</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" 
+                               placeholder="Tu nombre completo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="correo" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="correo" name="correo" 
+                               placeholder="tu@email.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Mínimo 6 caracteres" required minlength="6">
+                        <div class="form-text">La contraseña debe tener al menos 6 caracteres</div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" required>
+                        <label class="form-check-label" for="terms">
+                            Acepto los términos y condiciones
+                        </label>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            Crear Mi Cuenta
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <p class="mb-0">¿Ya tienes una cuenta? 
+                    <a href="{{ url_for('login') }}" class="text-decoration-none">
+                        <strong>Inicia sesión aquí</strong>
+                    </a>
+                </p>
             </div>
         </div>
     </div>

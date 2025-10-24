@@ -1,73 +1,148 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center fw-bold text-dark mb-4">Editar Pedido #{{ pedido.id }}</h2>
+<div class="container mt-4">
+  
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <h2 class="text-dark mb-2">
+      <i class="bi bi-pencil-square text-primary me-2"></i>Editar Pedido
+    </h2>
+    <p class="text-muted">Actualiza la información del pedido #{{ pedido.id }}</p>
+  </div>
 
-    <form method="POST">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="pedido_id" class="form-label">ID del Pedido</label>
-                    <input type="text" class="form-control" id="pedido_id" value="{{ pedido.id }}" readonly>
-                </div>
+  <form method="POST">
+    <div class="row">
+      
+      <!-- Información del pedido -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="bi bi-info-circle me-2"></i>Información del Pedido
+            </h5>
+          </div>
+          <div class="card-body">
+            
+            <div class="mb-3">
+              <label for="pedido_id" class="form-label">
+                <i class="bi bi-hash me-2"></i>ID del Pedido
+              </label>
+              <input type="text" class="form-control" id="pedido_id" 
+                     value="{{ pedido.id }}" readonly>
+              <div class="form-text">Identificador único del pedido (no editable)</div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="fecha" class="form-label">Fecha de Creación</label>
-                    <input type="text" class="form-control" id="fecha" 
-                           value="{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else 'N/A' }}" readonly>
-                </div>
+            <div class="mb-3">
+              <label for="fecha" class="form-label">
+                <i class="bi bi-calendar me-2"></i>Fecha de Creación
+              </label>
+              <input type="text" class="form-control" id="fecha" 
+                     value="{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else 'N/A' }}" readonly>
+              <div class="form-text">Fecha y hora de creación del pedido</div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="total" class="form-label">Total</label>
-                    <input type="text" class="form-control" id="total" 
-                           value="${{ "%.2f"|format(pedido.total) }}" readonly>
-                </div>
+            <div class="mb-3">
+              <label for="total" class="form-label">
+                <i class="bi bi-currency-dollar me-2"></i>Total del Pedido
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control" id="total" 
+                       value="{{ "%.2f"|format(pedido.total) }}" readonly>
+              </div>
+              <div class="form-text">Monto total calculado automáticamente</div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="estado" class="form-label">Estado *</label>
-                    <select class="form-control" id="estado" name="estado" required>
-                        <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                        <option value="enviado" {% if pedido.estado == 'enviado' %}selected{% endif %}>Enviado</option>
-                        <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>Entregado</option>
-                        <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
-                    </select>
-                </div>
+            <div class="mb-3">
+              <label for="estado" class="form-label">
+                <i class="bi bi-tag me-2"></i>Estado del Pedido *
+              </label>
+              <select class="form-select" id="estado" name="estado" required>
+                <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>
+                  <i class="bi bi-clock"></i> Pendiente
+                </option>
+                <option value="enviado" {% if pedido.estado == 'enviado' %}selected{% endif %}>
+                  <i class="bi bi-truck"></i> Enviado
+                </option>
+                <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>
+                  <i class="bi bi-check-circle"></i> Entregado
+                </option>
+                <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>
+                  <i class="bi bi-x-circle"></i> Cancelado
+                </option>
+              </select>
+              <div class="form-text">Actualiza el estado según el progreso del pedido</div>
             </div>
             
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">Productos del Pedido</label>
-                    <div class="border p-3">
-                        {% if pedido.productos %}
-                            {% for producto in pedido.productos %}
-                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                                <div>
-                                    <strong>{{ producto.nombre }}</strong><br>
-                                    <small class="text-muted">Precio unitario: ${{ "%.2f"|format(producto.precio) }}</small>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-primary">x{{ producto.cantidad }}</span><br>
-                                    <small>Subtotal: ${{ "%.2f"|format(producto.subtotal) }}</small>
-                                </div>
-                            </div>
-                            {% endfor %}
-                            
-                            <div class="mt-3 pt-2 border-top">
-                                <strong>Total: ${{ "%.2f"|format(pedido.total) }}</strong>
-                            </div>
-                        {% else %}
-                            <p class="text-muted">No hay productos en este pedido.</p>
-                        {% endif %}
-                    </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Productos del pedido -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">
+              <i class="bi bi-bag me-2"></i>Productos del Pedido
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if pedido.productos %}
+              <div class="products-list" style="max-height: 400px; overflow-y: auto;">
+                {% for producto in pedido.productos %}
+                <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1 text-dark">{{ producto.nombre }}</h6>
+                    <small class="text-muted">
+                      <i class="bi bi-tag-fill me-1"></i>Precio unitario: ${{ "%.2f"|format(producto.precio) }}
+                    </small>
+                  </div>
+                  <div class="text-end">
+                    <span class="badge bg-primary fs-6">x{{ producto.cantidad }}</span>
+                    <br>
+                    <small class="text-success fw-bold">
+                      <i class="bi bi-calculator me-1"></i>${{ "%.2f"|format(producto.subtotal) }}
+                    </small>
+                  </div>
                 </div>
-            </div>
+                {% endfor %}
+              </div>
+              
+              <div class="mt-3 pt-3 border-top bg-light p-3 rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold text-dark">
+                    <i class="bi bi-receipt me-2"></i>Total del Pedido:
+                  </span>
+                  <span class="fw-bold text-success fs-5">
+                    ${{ "%.2f"|format(pedido.total) }}
+                  </span>
+                </div>
+              </div>
+            {% else %}
+              <div class="text-center py-4">
+                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">No hay productos en este pedido</p>
+              </div>
+            {% endif %}
+          </div>
         </div>
+      </div>
+      
+    </div>
 
-        <div class="text-center">
-            <button type="submit" class="btn btn-success">Actualizar Pedido</button>
-            <a href="{{ url_for('listar_pedidos_admin') }}" class="btn btn-secondary">Cancelar</a>
-        </div>
-    </form>
+    <!-- Buttons -->
+    <div class="text-center mt-4">
+      <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+        <a href="{{ url_for('listar_pedidos_admin') }}" class="btn btn-outline-secondary me-md-2">
+          <i class="bi bi-arrow-left me-2"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-check-lg me-2"></i>Actualizar Pedido
+        </button>
+      </div>
+    </div>
+  </form>
+  
 </div>
 {% endblock %}

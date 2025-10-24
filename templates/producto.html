@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('listar_productos') }}" class="btn btn-outline-secondary">Volver a Productos</a>
+</div>
+
 <div class="row">
     <div class="col-md-6">
-        <img src="https://via.placeholder.com/500x400.png?text={{ producto.nombre|urlencode }}" class="img-fluid rounded" alt="{{ producto.nombre }}">
+        <img src="{{ producto.imagen_url if producto.imagen_url else '' + producto.nombre[:15]|urlencode }}" 
+             class="img-fluid rounded shadow product-image-large" alt="{{ producto.nombre }}"
+             >
     </div>
     <div class="col-md-6">
         <h2>{{ producto.nombre }}</h2>
@@ -16,29 +22,46 @@
                     {% set estrellas_llenas = (estadisticas_reseñas.promedio)|round %}
                     {% for i in range(1, 6) %}
                         {% if i <= estrellas_llenas %}
-                            <span class="text-warning">⭐</span>
+                            <i class="bi bi-star-fill text-warning"></i>
                         {% else %}
-                            <span class="text-muted">☆</span>
+                            <i class="bi bi-star text-muted"></i>
                         {% endif %}
                     {% endfor %}
                 </div>
                 <span class="text-muted">
-                    {{ estadisticas_reseñas.promedio }}/5.0 ({{ estadisticas_reseñas.total }} reseña{{ 's' if estadisticas_reseñas.total != 1 else '' }})
+                    {{ "%.1f"|format(estadisticas_reseñas.promedio) }}/5.0 ({{ estadisticas_reseñas.total }} reseña{{ 's' if estadisticas_reseñas.total != 1 else '' }})
                 </span>
             </div>
         </div>
         {% endif %}
         
-        <h3 class="my-3">${{ "%.2f"|format(producto.precio) }}</h3>
-        <h4>Stock: {{ producto.inventario }}</h4>
+        <div class="mb-3">
+            <span class="price display-6">${{ "%.2f"|format(producto.precio) }}</span>
+        </div>
+        
+        <div class="mb-3">
+            <span class="badge {% if producto.inventario > 5 %}bg-success{% elif producto.inventario > 0 %}bg-warning{% else %}bg-danger{% endif %} fs-6">
+                {% if producto.inventario > 0 %}
+                    Stock disponible: {{ producto.inventario }} unidades
+                {% else %}
+                    Sin stock
+                {% endif %}
+            </span>
+        </div>
         
         {% if session.get('user_id') %}
         <form action="{{ url_for('agregar_al_carrito', producto_id=producto.id) }}" method="POST">
             <input type="hidden" name="producto_id" value="{{ producto.id }}">
-            <div class="input-group mb-3" style="max-width: 150px;">
-                <input type="number" name="cantidad" class="form-control" value="1" min="1" max="{{ producto.inventario }}">
+            <div class="row mb-3">
+                <div class="col-auto">
+                    <label for="cantidad" class="form-label">Cantidad:</label>
+                </div>
+                <div class="col-auto">
+                    <input type="number" name="cantidad" id="cantidad" class="form-control" 
+                           value="1" min="1" max="{{ producto.inventario }}" style="width: 80px;">
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg" {% if producto.inventario == 0 %}disabled{% endif %}>
+            <button type="submit" class="btn btn-success btn-lg" {% if producto.inventario == 0 %}disabled{% endif %}>
                 {% if producto.inventario == 0 %}
                     Sin Stock
                 {% else %}
@@ -48,7 +71,8 @@
         </form>
         {% else %}
         <div class="alert alert-info">
-            <a href="{{ url_for('login') }}">Inicia sesión</a> para agregar productos al carrito.
+            <p><a href="{{ url_for('login') }}" class="alert-link">Inicia sesión</a> para agregar productos al carrito.</p>
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Iniciar Sesión</a>
         </div>
         {% endif %}
     </div>
@@ -73,12 +97,17 @@
                         <label for="calificacion" class="form-label">Calificación *</label>
                         <div class="rating-input">
                             <input type="hidden" name="calificacion" id="calificacion" value="5" required>
-                            <div class="stars" id="star-rating">
-                                <span class="star" data-rating="1">⭐</span>
-                                <span class="star" data-rating="2">⭐</span>
-                                <span class="star" data-rating="3">⭐</span>
-                                <span class="star" data-rating="4">⭐</span>
-                                <span class="star" data-rating="5">⭐</span>
+                            <div class="star-rating animated-stars">
+                                <input type="radio" id="star5" name="rating" value="5" checked>
+                                <label for="star5" class="bi bi-star-fill"></label>
+                                <input type="radio" id="star4" name="rating" value="4">
+                                <label for="star4" class="bi bi-star-fill"></label>
+                                <input type="radio" id="star3" name="rating" value="3">
+                                <label for="star3" class="bi bi-star-fill"></label>
+                                <input type="radio" id="star2" name="rating" value="2">
+                                <label for="star2" class="bi bi-star-fill"></label>
+                                <input type="radio" id="star1" name="rating" value="1">
+                                <label for="star1" class="bi bi-star-fill"></label>
                             </div>
                             <small class="text-muted">Haz clic en las estrellas para calificar</small>
                         </div>
@@ -122,9 +151,9 @@
                                 <div class="mb-2">
                                     {% for i in range(1, 6) %}
                                         {% if i <= reseña.calificacion %}
-                                            <span class="text-warning">⭐</span>
+                                            <i class="bi bi-star-fill text-warning"></i>
                                         {% else %}
-                                            <span class="text-muted">☆</span>
+                                            <i class="bi bi-star text-muted"></i>
                                         {% endif %}
                                     {% endfor %}
                                     <span class="text-muted ms-2">{{ reseña.calificacion }}/5</span>
@@ -151,65 +180,63 @@
 </div>
 
 <style>
-.rating-input .stars {
-    font-size: 1.5rem;
+.star-rating {
+    direction: rtl;
+    display: inline-block;
     cursor: pointer;
 }
 
-.rating-input .star {
-    transition: color 0.2s;
+.star-rating input {
+    display: none;
+}
+
+.star-rating label {
+    color: #ddd;
+    font-size: 24px;
+    padding: 0 2px;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.rating-input .star:hover,
-.rating-input .star.active {
-    filter: brightness(1.2);
+.star-rating label:hover,
+.star-rating label:hover~label,
+.star-rating input:checked~label {
+    color: #ffc107;
 }
 
-.rating-input .star.inactive {
-    filter: grayscale(100%);
+.rating-input {
+    margin-bottom: 1rem;
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const stars = document.querySelectorAll('.star');
-    const calificacionInput = document.getElementById('calificacion');
+    const ratingInputs = document.querySelectorAll('.star-rating input[type="radio"]');
+    const calificacionHidden = document.getElementById('calificacion');
     
-    if (stars.length > 0 && calificacionInput) {
-        // Inicializar con 5 estrellas
-        updateStars(5);
-        
-        stars.forEach(star => {
-            star.addEventListener('click', function() {
-                const rating = parseInt(this.dataset.rating);
-                calificacionInput.value = rating;
-                updateStars(rating);
-            });
-            
-            star.addEventListener('mouseover', function() {
-                const rating = parseInt(this.dataset.rating);
-                updateStars(rating);
-            });
-        });
-        
-        document.getElementById('star-rating').addEventListener('mouseleave', function() {
-            const currentRating = parseInt(calificacionInput.value);
-            updateStars(currentRating);
-        });
+    // Inicializar con 5 estrellas seleccionadas
+    if (calificacionHidden) {
+        calificacionHidden.value = 5;
     }
     
-    function updateStars(rating) {
-        stars.forEach((star, index) => {
-            if (index < rating) {
-                star.classList.add('active');
-                star.classList.remove('inactive');
-            } else {
-                star.classList.remove('active');
-                star.classList.add('inactive');
+    // Agregar listeners a los radio buttons
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (calificacionHidden) {
+                calificacionHidden.value = this.value;
             }
         });
-    }
+    });
+    
+    // Efecto de animación al hacer clic
+    document.querySelectorAll('.star-rating:not(.readonly) label').forEach(star => {
+        star.addEventListener('click', function() {
+            this.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+    });
 });
 </script>
 {% endblock %}

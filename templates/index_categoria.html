@@ -1,44 +1,117 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center fw-bold text-dark mb-4">Gestión de Categorías</h2>
+<div class="container-fluid mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      
+      <!-- Header Section -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="text-dark mb-1"><i class="bi bi-tags me-2"></i>Gestión de Categorías</h2>
+          <p class="text-muted mb-0">Organiza y administra las categorías de productos</p>
+        </div>
+        <a href="{{ url_for('crear_categoria_admin') }}" class="btn btn-success">
+          <i class="bi bi-plus-circle me-2"></i>Nueva Categoría
+        </a>
+      </div>
 
-  <div class="text-center mb-4">
-    <a href="{{ url_for('crear_categoria_admin') }}" class="btn btn-success">Crear nueva categoría</a>
+      {% if categorias %}
+      <!-- Categories Table -->
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th class="ps-3">ID</th>
+                  <th>Categoría</th>
+                  <th>Descripción</th>
+                  <th>Estado</th>
+                  <th class="text-center pe-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for categoria in categorias %}
+                <tr>
+                  <td class="ps-3">
+                    <small class="text-muted">{{ categoria.id[:8] }}...</small>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                           style="width: 40px; height: 40px;">
+                        <i class="bi bi-tag text-white"></i>
+                      </div>
+                      <div>
+                        <h6 class="mb-1">{{ categoria.nombre }}</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-muted">{{ categoria.descripcion }}</span>
+                  </td>
+                  <td>
+                    <span class="badge {% if categoria.activa %}bg-success{% else %}bg-secondary{% endif %}">
+                      {% if categoria.activa %}Activa{% else %}Inactiva{% endif %}
+                    </span>
+                  </td>
+                  <td class="text-center pe-3">
+                    <div class="btn-group" role="group">
+                      <a href="{{ url_for('editar_categoria_admin', id=categoria.id) }}" 
+                         class="btn btn-sm btn-outline-primary" title="Editar categoría">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <a href="{{ url_for('eliminar_categoria_admin', id=categoria.id) }}" 
+                         class="btn btn-sm btn-outline-danger" title="Eliminar categoría"
+                         onclick="return confirm('¿Seguro que deseas eliminar esta categoría?');">
+                        <i class="bi bi-trash"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Summary Cards -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="card bg-info text-white">
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ categorias|length }}</h5>
+              <p class="card-text">Total Categorías</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card bg-success text-white">
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ categorias|selectattr('activa')|list|length }}</h5>
+              <p class="card-text">Categorías Activas</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="bi bi-tags display-1 text-muted"></i>
+        </div>
+        <h4 class="text-muted">No hay categorías registradas</h4>
+        <p class="text-muted mb-4">Las categorías ayudan a organizar tus productos</p>
+        <a href="{{ url_for('crear_categoria_admin') }}" class="btn btn-success">
+          <i class="bi bi-plus-circle me-2"></i>Crear primera categoría
+        </a>
+      </div>
+      {% endif %}
+      
+    </div>
   </div>
-
-  {% if categorias %}
-  <table class="table table-bordered text-center">
-    <thead class="table-info">
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Descripción</th>
-        <th>Activa</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for categoria in categorias %}
-      <tr>
-        <td>{{ categoria.id }}</td>
-        <td>{{ categoria.nombre }}</td>
-        <td>{{ categoria.descripcion }}</td>
-        <td>{{ 'Sí' if categoria.activa else 'No' }}</td>
-        <td>
-          <a href="{{ url_for('editar_categoria_admin', id=categoria.id) }}" class="btn btn-primary">Editar</a>
-          <a href="{{ url_for('eliminar_categoria_admin', id=categoria.id) }}" class="btn btn-danger"
-             onclick="return confirm('¿Seguro que deseas eliminar esta categoría?');">Eliminar</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <div class="alert alert-info text-center">
-    No hay categorías registradas.
-  </div>
-  {% endif %}
 </div>
 {% endblock %}
