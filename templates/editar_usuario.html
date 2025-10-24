@@ -1,32 +1,89 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center fw-bold mb-4">Actualizar Usuario</h2>
-  <form action="{{ url_for('editar_usuario_admin', id=usuario.id) }}" method="POST" class="border p-4 rounded shadow-sm bg-light">
-    <div class="mb-3">
-      <label for="usuario.id" class="form-label fw-bold">ID Usuario</label>
-      <input type="text" id="usuario.id" name="usuario.id" class="form-control" value="{{ usuario.id }}" readonly>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h2 class="text-dark mb-2">
+          <i class="bi bi-person-gear text-primary me-2"></i>Editar Usuario
+        </h2>
+        <p class="text-muted">Actualiza la información del usuario</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-person-lines-fill me-2"></i>Información del Usuario
+          </h5>
+        </div>
+        <div class="card-body">
+          <form action="{{ url_for('editar_usuario_admin', id=usuario.id) }}" method="POST">
+            
+            <!-- ID del Usuario (readonly) -->
+            <div class="mb-3">
+              <label for="usuario.id" class="form-label">
+                <i class="bi bi-hash me-2"></i>ID del Usuario
+              </label>
+              <input type="text" id="usuario.id" name="usuario.id" class="form-control" 
+                     value="{{ usuario.id }}" readonly>
+              <div class="form-text">Identificador único del usuario (no editable)</div>
+            </div>
+            
+            <!-- Nombre -->
+            <div class="mb-3">
+              <label for="nombre" class="form-label">
+                <i class="bi bi-person me-2"></i>Nombre Completo *
+              </label>
+              <input type="text" id="nombre" name="nombre" class="form-control" 
+                     value="{{ usuario.nombre }}" required>
+            </div>
+            
+            <!-- Correo -->
+            <div class="mb-3">
+              <label for="correo" class="form-label">
+                <i class="bi bi-envelope me-2"></i>Correo Electrónico *
+              </label>
+              <input type="email" id="correo" name="correo" class="form-control" 
+                     value="{{ usuario.correo }}" required>
+              <div class="form-text">Se usa para iniciar sesión en el sistema</div>
+            </div>
+            
+            <!-- Teléfono -->
+            <div class="mb-3">
+              <label for="telefono" class="form-label">
+                <i class="bi bi-telephone me-2"></i>Teléfono *
+              </label>
+              <input type="tel" id="telefono" name="telefono" class="form-control" 
+                     value="{{ usuario.telefono }}" required>
+            </div>
+            
+            <!-- Dirección -->
+            <div class="mb-4">
+              <label for="direccion" class="form-label">
+                <i class="bi bi-geo-alt me-2"></i>Dirección *
+              </label>
+              <textarea id="direccion" name="direccion" class="form-control" rows="3" required>{{ usuario.direccion }}</textarea>
+              <div class="form-text">Dirección completa para envíos</div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ url_for('listar_usuarios') }}" class="btn btn-outline-secondary me-md-2">
+                <i class="bi bi-arrow-left me-2"></i>Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Guardar Cambios
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
     </div>
-    <div class="mb-3">
-      <label for="nombre" class="form-label fw-bold">Nombre</label>
-      <input type="text" id="nombre" name="nombre" class="form-control" value="{{ usuario.nombre }}" required>
-    </div>
-    <div class="mb-3">
-      <label for="correo" class="form-label fw-bold">Correo</label>
-      <input type="email" id="correo" name="correo" class="form-control" value="{{ usuario.correo }}" required>
-    </div>
-    <div class="mb-3">
-      <label for="telefono" class="form-label fw-bold">Teléfono</label>
-      <input type="text" id="telefono" name="telefono" class="form-control" value="{{ usuario.telefono }}" required>
-    </div>
-    <div class="mb-3">
-      <label for="direccion" class="form-label fw-bold">Dirección</label>
-      <textarea id="direccion" name="direccion" class="form-control" rows="2" required>{{ usuario.direccion }}</textarea>
-    </div>
-    <div class="text-center">
-      <button type="submit" class="btn btn-success fw-bold">Guardar Cambios</button>
-      <a href="{{ url_for('listar_usuarios') }}" class="btn btn-secondary">Cancelar</a>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

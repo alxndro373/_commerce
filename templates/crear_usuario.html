@@ -1,37 +1,86 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
   <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card shadow">
+    <div class="col-md-8 col-lg-6">
+      
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h2 class="text-dark mb-2">
+          <i class="bi bi-person-plus text-success me-2"></i>Crear Usuario
+        </h2>
+        <p class="text-muted">Registra un nuevo usuario en el sistema</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card shadow-sm">
         <div class="card-header bg-success text-white">
-          <h3 class="text-center">Crear Usuario</h3>
+          <h5 class="mb-0">
+            <i class="bi bi-person-lines-fill me-2"></i>Información del Usuario
+          </h5>
         </div>
         <div class="card-body">
           <form action="{{ url_for('crear_usuario_admin') }}" method="POST">
+            
+            <!-- Nombre -->
             <div class="mb-3">
-              <label for="nombre" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombre" name="nombre" required>
+              <label for="nombre" class="form-label">
+                <i class="bi bi-person me-2"></i>Nombre Completo *
+              </label>
+              <input type="text" class="form-control" id="nombre" name="nombre" 
+                     placeholder="Ej: Juan Pérez García" required>
             </div>
+            
+            <!-- Correo -->
             <div class="mb-3">
-              <label for="correo" class="form-label">Correo</label>
-              <input type="email" class="form-control" id="correo" name="correo" required>
+              <label for="correo" class="form-label">
+                <i class="bi bi-envelope me-2"></i>Correo Electrónico *
+              </label>
+              <input type="email" class="form-control" id="correo" name="correo" 
+                     placeholder="correo@ejemplo.com" required>
+              <div class="form-text">Se usará para iniciar sesión en el sistema</div>
             </div>
+            
+            <!-- Teléfono -->
             <div class="mb-3">
-              <label for="telefono" class="form-label">Teléfono</label>
-              <input type="text" class="form-control" id="telefono" name="telefono" required>
+              <label for="telefono" class="form-label">
+                <i class="bi bi-telephone me-2"></i>Teléfono *
+              </label>
+              <input type="tel" class="form-control" id="telefono" name="telefono" 
+                     placeholder="+52 123 456 7890" required>
             </div>
-            <div class="mb-3">
-              <label for="direccion" class="form-label">Dirección</label>
-              <textarea class="form-control" id="direccion" name="direccion" rows="3" required></textarea>
+            
+            <!-- Dirección -->
+            <div class="mb-4">
+              <label for="direccion" class="form-label">
+                <i class="bi bi-geo-alt me-2"></i>Dirección *
+              </label>
+              <textarea class="form-control" id="direccion" name="direccion" rows="3" 
+                        placeholder="Calle, número, colonia, ciudad, estado..." required></textarea>
+              <div class="form-text">Dirección completa para envíos</div>
             </div>
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-success">Guardar Usuario</button>
-              <a href="{{ url_for('listar_usuarios') }}" class="btn btn-secondary">Cancelar</a>
+            
+            <!-- Password Info -->
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              <strong>Nota:</strong> Se asignará la contraseña temporal <code>123456</code>. 
+              El usuario podrá cambiarla después del primer inicio de sesión.
             </div>
+            
+            <!-- Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ url_for('listar_usuarios') }}" class="btn btn-outline-secondary me-md-2">
+                <i class="bi bi-arrow-left me-2"></i>Cancelar
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-2"></i>Crear Usuario
+              </button>
+            </div>
+            
           </form>
         </div>
       </div>
+      
     </div>
   </div>
 </div>

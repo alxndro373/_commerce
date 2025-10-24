@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <h2 class="text-dark mb-2">
+      <i class="bi bi-chat-square-text text-primary me-2"></i>Detalles de la Reseña
+    </h2>
+    <p class="text-muted">Información completa de la reseña del cliente</p>
+  </div>
+
+  <div class="row">
+    <!-- Información principal -->
+    <div class="col-lg-8 mb-4">
+      
+      <!-- Información de la reseña -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-info-circle me-2"></i>Información de la Reseña
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-hash text-primary me-3 fs-5"></i>
+                <div>
+                  <strong>ID de la Reseña</strong>
+                  <br><span class="text-muted">{{ reseña.id }}</span>
+                </div>
+              </div>
+              
+              <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-calendar3 text-primary me-3 fs-5"></i>
+                <div>
+                  <strong>Fecha de Publicación</strong>
+                  <br><span class="text-muted">{{ reseña.fecha.strftime('%d/%m/%Y %H:%M') if reseña.fecha else 'No disponible' }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-star-fill text-warning me-3 fs-5"></i>
+                <div>
+                  <strong>Calificación</strong>
+                  <br>
+                  <div class="rating-stars">
+                    {% for i in range(1, 6) %}
+                      {% if i <= reseña.calificacion %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                      {% else %}
+                        <i class="bi bi-star text-muted"></i>
+                      {% endif %}
+                    {% endfor %}
+                    <span class="ms-2 text-muted">({{ reseña.calificacion }}/5)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comentario de la reseña -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-chat-quote me-2"></i>Comentario del Cliente
+          </h5>
+        </div>
+        <div class="card-body">
+          {% if reseña.comentario %}
+            <blockquote class="blockquote mb-0">
+              <p class="fs-6">{{ reseña.comentario }}</p>
+            </blockquote>
+          {% else %}
+            <div class="text-center py-3">
+              <i class="bi bi-chat-square text-muted" style="font-size: 2rem;"></i>
+              <p class="text-muted mt-2">No hay comentario para esta reseña</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Información del producto -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-box me-2"></i>Producto Reseñado
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-8">
+              <h5 class="text-dark">{{ reseña.producto_nombre or 'Producto no disponible' }}</h5>
+              {% if reseña.producto_descripcion %}
+                <p class="text-muted">{{ reseña.producto_descripcion[:200] }}...</p>
+              {% endif %}
+            </div>
+            <div class="col-md-4 text-md-end">
+              {% if reseña.producto_precio %}
+                <h4 class="text-success">${{ "%.2f"|format(reseña.producto_precio) }}</h4>
+                <small class="text-muted">Precio del producto</small>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      
+      <!-- Información del cliente -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-person me-2"></i>Información del Cliente
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-3">
+            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                 style="width: 60px; height: 60px;">
+              <i class="bi bi-person text-white fs-3"></i>
+            </div>
+            <h5 class="mb-1">{{ reseña.usuario_nombre or 'Usuario Desconocido' }}</h5>
+            <small class="text-muted">Cliente registrado</small>
+          </div>
+          
+          <div class="mb-2">
+            <i class="bi bi-envelope me-2 text-muted"></i>
+            <span>{{ reseña.usuario_correo or 'Email no disponible' }}</span>
+          </div>
+          
+          {% if reseña.usuario_telefono %}
+          <div class="mb-2">
+            <i class="bi bi-telephone me-2 text-muted"></i>
+            <span>{{ reseña.usuario_telefono }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Acciones de administrador -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="bi bi-gear me-2"></i>Acciones de Administrador
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="{{ url_for('listar_reseñas_admin') }}" class="btn btn-outline-primary">
+              <i class="bi bi-arrow-left me-2"></i>Volver a Reseñas
+            </a>
+            <a href="{{ url_for('eliminar_reseña_admin_route', id=reseña.id) }}" 
+               class="btn btn-outline-danger"
+               onclick="return confirm('¿Seguro que deseas eliminar esta reseña? Esta acción no se puede deshacer.');">
+              <i class="bi bi-trash me-2"></i>Eliminar Reseña
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

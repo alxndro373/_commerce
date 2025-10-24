@@ -2,33 +2,48 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2 class="text-center mb-4">Iniciar Sesión</h2>
+    <div class="col-md-6 col-lg-5">
+        <div class="text-center mb-4">
+            <h2>Iniciar Sesión</h2>
+            <p class="text-muted">Accede a tu cuenta VZTECH</p>
+        </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <div class="card">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="mb-0">Bienvenido de vuelta</h5>
+            </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('login') }}">
                     <div class="mb-3">
                         <label for="correo" class="form-label">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="correo" name="correo" required>
+                        <input type="email" class="form-control" id="correo" name="correo" 
+                               placeholder="tu@email.com" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Tu contraseña" required>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Entrar</button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Iniciar Sesión
+                        </button>
                     </div>
                 </form>
             </div>
+            <div class="card-footer text-center">
+                <p class="mb-0">¿No tienes cuenta? 
+                    <a href="{{ url_for('registro') }}" class="text-decoration-none">
+                        <strong>Regístrate aquí</strong>
+                    </a>
+                </p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                Tus datos están seguros con nosotros
+            </small>
         </div>
     </div>
 </div>

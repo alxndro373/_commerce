@@ -260,6 +260,45 @@ def agregar_al_carrito(producto_id):
 
     return redirect(request.referrer or url_for('listar_productos'))
 
+@app.route('/actualizar_carrito/<string:producto_id>/<string:accion>', methods=['POST'])
+@login_required
+def actualizar_carrito(producto_id, accion):
+    """Actualiza la cantidad de un producto en el carrito."""
+    try:
+        usuario_id = ObjectId(session['user_id'])
+        
+        if accion in ['incrementar', 'decrementar']:
+            success = actualizar_cantidad_carrito(usuario_id, producto_id, accion)
+            if success:
+                if accion == 'incrementar':
+                    flash('Cantidad actualizada en el carrito.', 'success')
+                else:
+                    flash('Cantidad actualizada en el carrito.', 'info')
+            else:
+                flash('Error al actualizar el carrito.', 'danger')
+        else:
+            flash('Acción no válida.', 'danger')
+    except Exception as e:
+        flash('Error al actualizar el carrito.', 'danger')
+    
+    return redirect(url_for('ver_carrito'))
+
+@app.route('/eliminar_del_carrito/<string:producto_id>', methods=['POST'])
+@login_required
+def eliminar_del_carrito(producto_id):
+    """Elimina completamente un producto del carrito."""
+    try:
+        usuario_id = ObjectId(session['user_id'])
+        success = eliminar_producto_carrito(usuario_id, producto_id)
+        if success:
+            flash('Producto eliminado del carrito.', 'info')
+        else:
+            flash('Error al eliminar el producto del carrito.', 'danger')
+    except Exception as e:
+        flash('Error al eliminar el producto del carrito.', 'danger')
+    
+    return redirect(url_for('ver_carrito'))
+
 @app.route('/proceder_pago', methods=['POST'])
 @login_required
 def proceder_pago():
@@ -446,18 +485,32 @@ def listar_producto_admin():
 @app.route("/producto/crear", methods=["GET", "POST"])
 def crear_producto_admin():
     if request.method == "POST":
-        nuevo_producto = {
-            "nombre": request.form["nombre"],
-            "descripcion": request.form["descripcion"],
-            "precio": float(request.form["precio"]),
-            "categoria": ObjectId(request.form["categoria"]),
-            "inventario": int(request.form["inventario"]),
-            "activo": request.form.get("activo") == "1"
-        }
-        db.productos.insert_one(nuevo_producto)
-        flash('Producto creado exitosamente.', 'success')
-        return redirect(url_for("listar_producto_admin"))
-    return render_template("crear_producto.html")
+        try:
+            categoria_value = request.form.get("categoria", "").strip()
+            if not categoria_value:
+                flash('Debes seleccionar una categoría.', 'danger')
+                categorias = obtener_categorias()
+                return render_template("crear_producto.html", categorias=categorias)
+            
+            nuevo_producto = {
+                "nombre": request.form["nombre"],
+                "descripcion": request.form["descripcion"],
+                "precio": float(request.form["precio"]),
+                "categoria": ObjectId(categoria_value),
+                "inventario": int(request.form["inventario"]),
+                "activo": request.form.get("activo") == "1",
+                "imagen_url": request.form.get("imagen_url", "")
+            }
+            db.productos.insert_one(nuevo_producto)
+            flash('Producto creado exitosamente.', 'success')
+            return redirect(url_for("listar_producto_admin"))
+        except Exception as e:
+            flash(f'Error al crear el producto: {str(e)}', 'danger')
+            categorias = obtener_categorias()
+            return render_template("crear_producto.html", categorias=categorias)
+    
+    categorias = obtener_categorias()
+    return render_template("crear_producto.html", categorias=categorias)
 
 @app.route("/producto/editar/<string:id>", methods=["GET", "POST"])
 def editar_producto_admin(id):
@@ -466,20 +519,34 @@ def editar_producto_admin(id):
         return "Producto no encontrado", 404
 
     if request.method == "POST":
-        db.productos.update_one(
-            {"_id": ObjectId(id)},
-            {"$set": {
-                "nombre": request.form["nombre"],
-                "descripcion": request.form["descripcion"],
-                "precio": float(request.form["precio"]),
-                "categoria": ObjectId(request.form["categoria"]),
-                "inventario": int(request.form["inventario"]),
-                "activo": request.form.get("activo") == "1"
-            }}
-        )
+        try:
+            categoria_value = request.form.get("categoria", "").strip()
+            if not categoria_value:
+                flash('Debes seleccionar una categoría.', 'danger')
+                categorias = obtener_categorias()
+                return render_template("editar_producto.html", producto=producto, categoria=categorias)
+            
+            db.productos.update_one(
+                {"_id": ObjectId(id)},
+                {"$set": {
+                    "nombre": request.form["nombre"],
+                    "descripcion": request.form["descripcion"],
+                    "precio": float(request.form["precio"]),
+                    "categoria": ObjectId(categoria_value),
+                    "inventario": int(request.form["inventario"]),
+                    "activo": request.form.get("activo") == "1",
+                    "imagen_url": request.form.get("imagen_url", "")
+                }}
+            )
+        except Exception as e:
+            flash(f'Error al actualizar el producto: {str(e)}', 'danger')
+            categorias = obtener_categorias()
+            return render_template("editar_producto.html", producto=producto, categoria=categorias)
         flash('Producto actualizado.', 'success')
         return redirect(url_for("listar_producto_admin"))
-    return render_template("editar_producto.html", producto=producto)
+    
+    categorias = obtener_categorias()
+    return render_template("editar_producto.html", producto=producto, categoria=categorias)
 
 @app.route("/producto/eliminar/<string:id>")
 def eliminar_producto_admin(id):
@@ -579,7 +646,137 @@ def eliminar_pedido_admin(id):
     
     return redirect(url_for("listar_pedidos_admin"))
 
+# --- CRUD ADMINISTRADOR - RESEÑAS ---
+@app.route('/admin/reseñas')
+@login_required
+@admin_required
+def listar_reseñas_admin():
+    """Lista todas las reseñas para el administrador."""
+    reseñas = obtener_todas_las_reseñas_admin()
+    return render_template('index_reseña.html', reseñas=reseñas)
 
+@app.route('/admin/reseñas/<string:id>')
+@login_required
+@admin_required
+def ver_reseña_admin(id):
+    """Ver detalles de una reseña específica (solo lectura)."""
+    reseña = obtener_reseña_por_id_admin(id)
+    if not reseña:
+        flash('Reseña no encontrada.', 'danger')
+        return redirect(url_for('listar_reseñas_admin'))
+    
+    return render_template('ver_reseña.html', reseña=reseña)
+
+@app.route('/admin/reseñas/eliminar/<string:id>')
+@login_required
+@admin_required
+def eliminar_reseña_admin_route(id):
+    """Elimina una reseña (solo para administradores)."""
+    try:
+        success = eliminar_reseña_admin(id)
+        if success:
+            flash('Reseña eliminada exitosamente.', 'info')
+        else:
+            flash('No se pudo eliminar la reseña.', 'danger')
+    except Exception as e:
+        flash(f'Error al eliminar la reseña: {str(e)}', 'danger')
+    
+    return redirect(url_for("listar_reseñas_admin"))
+
+# --- CRUD ADMINISTRADOR - CARRITOS ---
+@app.route('/admin/carritos')
+@login_required
+@admin_required
+def listar_carritos_admin():
+    """Lista todos los carritos para el administrador."""
+    try:
+        carritos = obtener_todos_los_carritos_admin()
+        return render_template('index_carrito.html', carritos=carritos)
+    except Exception as e:
+        print(f"Error en listar_carritos_admin: {e}")
+        flash('Error al cargar los carritos.', 'danger')
+        return render_template('index_carrito.html', carritos=[])
+
+@app.route('/admin/carritos/<string:usuario_id>')
+@login_required
+@admin_required
+def ver_carrito_admin(usuario_id):
+    """Ver detalles de un carrito específico."""
+    try:
+        carrito = obtener_carrito_detallado_admin(usuario_id)
+        if not carrito:
+            flash('Carrito no encontrado.', 'danger')
+            return redirect(url_for('listar_carritos_admin'))
+        
+        return render_template('ver_carrito_admin.html', carrito=carrito)
+        
+    except Exception as e:
+        print(f"Error en ver_carrito_admin: {e}")
+        flash('Error al cargar el carrito.', 'danger')
+        return redirect(url_for('listar_carritos_admin'))
+
+@app.route('/admin/carritos/vaciar/<string:usuario_id>', methods=['POST'])
+@login_required
+@admin_required
+def vaciar_carrito_admin_route(usuario_id):
+    """Vacía un carrito específico (solo para administradores)."""
+    try:
+        success = vaciar_carrito_admin(usuario_id)
+        if success:
+            flash('Carrito vaciado exitosamente.', 'success')
+        else:
+            flash('No se pudo vaciar el carrito.', 'warning')
+    except Exception as e:
+        flash(f'Error al vaciar el carrito: {str(e)}', 'danger')
+    
+    return redirect(url_for("ver_carrito_admin", usuario_id=usuario_id))
+
+@app.route('/admin/carritos/actualizar-producto/<string:usuario_id>/<string:producto_id>', methods=['POST'])
+@login_required
+@admin_required
+def actualizar_producto_carrito_admin_route(usuario_id, producto_id):
+    """Actualiza la cantidad de un producto en el carrito."""
+    try:
+        nueva_cantidad = int(request.form.get('cantidad', 1))
+        
+        if nueva_cantidad < 0:
+            flash('La cantidad debe ser mayor o igual a 0.', 'warning')
+        elif nueva_cantidad == 0:
+            # Si la cantidad es 0, eliminar el producto
+            success = eliminar_producto_carrito_admin(usuario_id, producto_id)
+            if success:
+                flash('Producto eliminado del carrito.', 'success')
+            else:
+                flash('No se pudo eliminar el producto.', 'warning')
+        else:
+            success = actualizar_cantidad_producto_carrito_admin(usuario_id, producto_id, nueva_cantidad)
+            if success:
+                flash(f'Cantidad actualizada a {nueva_cantidad}.', 'success')
+            else:
+                flash('No se pudo actualizar la cantidad.', 'warning')
+                
+    except ValueError:
+        flash('Cantidad inválida.', 'danger')
+    except Exception as e:
+        flash(f'Error al actualizar el producto: {str(e)}', 'danger')
+    
+    return redirect(url_for("ver_carrito_admin", usuario_id=usuario_id))
+
+@app.route('/admin/carritos/eliminar-producto/<string:usuario_id>/<string:producto_id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_producto_carrito_admin_route(usuario_id, producto_id):
+    """Elimina un producto del carrito."""
+    try:
+        success = eliminar_producto_carrito_admin(usuario_id, producto_id)
+        if success:
+            flash('Producto eliminado del carrito.', 'success')
+        else:
+            flash('No se pudo eliminar el producto.', 'warning')
+    except Exception as e:
+        flash(f'Error al eliminar el producto: {str(e)}', 'danger')
+    
+    return redirect(url_for("ver_carrito_admin", usuario_id=usuario_id))
 
 # -------------------------------
 # DASHBOARD ADMIN (ejemplo)
